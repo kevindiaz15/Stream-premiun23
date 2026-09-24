@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stream Premium23 · Cuentas premium de streaming</title>
+<meta name="description" content="Cuentas premium de Netflix, Disney+, HBO Max, Prime Video, Spotify y más. Entrega inmediata por WhatsApp, garantía y los mejores precios.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23D82734'/><text x='50' y='68' font-size='52' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold'>S</text></svg>">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Stream Premium23">
+<meta property="og:title" content="Stream Premium23 · Cuentas premium de streaming">
+<meta property="og:description" content="Cuentas premium de streaming con entrega inmediata por WhatsApp y garantía.">
+<meta name="twitter:card" content="summary">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/extra.css">
+</head>
+
+<body>
+
+<!-- ========================================================== -->
+<!-- NAVBAR                                                      -->
+<!-- ========================================================== -->
+<header class="navbar">
+  <div class="container nav-inner">
+    <a href="#inicio" class="logo">
+      <span class="logo-text">
+        <span class="d">Stream Premium23</span>
+        <span class="c"><i class="fa-solid fa-fire-flame-curved flame-mini" style="font-size:.5rem"></i> Cuentas premium</span>
+      </span>
+    </a>
+
+    <nav>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="#inicio"><i class="fa-solid fa-house"></i>Inicio</a></li>
+        <li><a href="#plataformas"><i class="fa-solid fa-tv"></i>Plataformas</a></li>
+        <li><a href="#catalogo"><i class="fa-solid fa-layer-group"></i>Catálogo</a></li>
+        <li><a href="#condiciones"><i class="fa-solid fa-list-check"></i>Condiciones</a></li>
+        <li><a href="#garantia"><i class="fa-solid fa-shield-halved"></i>Garantía</a></li>
+        <li><a href="#" onclick="abrirPedido(event)"><i class="fa-solid fa-bag-shopping"></i>Mi pedido</a></li>
+        <li><a href="#contacto"><i class="fa-solid fa-envelope-open-text"></i>Contacto</a></li>
+      </ul>
+    </nav>
+
+    <div class="nav-actions">
+      <div class="social-dock">
+        <a href="#" target="_blank" rel="noopener" aria-label="WhatsApp" title="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
+        <a href="#" target="_blank" rel="noopener" aria-label="Instagram" title="Instagram"><i class="fa-brands fa-instagram"></i></a>
+        <a href="#" target="_blank" rel="noopener" aria-label="TikTok" title="TikTok"><i class="fa-brands fa-tiktok"></i></a>
+      </div>
+      <button class="cart-btn" onclick="abrirPedido(event)" aria-label="Mi pedido">
+        <i class="fa-solid fa-bag-shopping"></i>
+        <span class="txt-hide">Mi pedido</span>
+        <span class="badge" id="cartBadge">0</span>
+      </button>
+      <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menú">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ========================================================== -->
+<!-- HERO                                                        -->
+<!-- ========================================================== -->
+<section class="hero" id="inicio">
+  <div class="container">
+    <div class="hero-copy reveal">
+      <span class="hero-kicker"><i class="fa-solid fa-fire-flame-curved"></i> Cuentas premium · Entrega inmediata</span>
+      <h1>Tu streaming favorito,<br>al <em>mejor precio.</em></h1>
+      <p class="lead">Netflix, Disney+, HBO Max, Prime Video, Spotify y más. Compra tu cuenta premium, paga y recibe el acceso al instante por WhatsApp.</p>
+      <div class="hero-btns">
+        <a href="#catalogo" class="btn btn-primary"><i class="fa-solid fa-tags"></i> Ver catálogo</a>
+        <a href="#garantia" class="btn btn-outline"><i class="fa-solid fa-shield-halved"></i> Conoce la garantía</a>
+      </div>
+      <div class="hero-feats">
+        <span><i class="fa-solid fa-circle-check"></i> Entrega inmediata</span>
+        <span><i class="fa-solid fa-circle-check"></i> Garantía incluida</span>
+        <span><i class="fa-solid fa-circle-check"></i> Atención 24/7</span>
+      </div>
+    </div>
+
+    <div class="hero-scene reveal">
+      <div class="blob hb1"></div>
+      <div class="blob hb2"></div>
+      <i class="fa-solid fa-star hero-star hs1"></i>
+      <i class="fa-solid fa-star hero-star hs2"></i>
+      <i class="fa-solid fa-star hero-star hs3"></i>
+      <i class="fa-solid fa-star hero-star hs4"></i>
+      <div class="hero-tv"><i class="fa-solid fa-tv"></i></div>
+    </div>
+  </div>
+</section>
+
+<!-- Cinta -->
+<div class="marquee-wrap">
+  <div class="marquee" id="marquee">
+    <span><i class="fa-solid fa-tv"></i> Netflix Premium</span>
+    <span><i class="fa-solid fa-film"></i> Disney+</span>
+    <span><i class="fa-solid fa-video"></i> HBO Max</span>
+    <span><i class="fa-solid fa-box-open"></i> Prime Video</span>
+    <span><i class="fa-solid fa-music"></i> Spotify Premium</span>
+    <span><i class="fa-solid fa-play"></i> YouTube Premium</span>
+    <span><i class="fa-solid fa-tv"></i> Netflix Premium</span>
+    <span><i class="fa-solid fa-film"></i> Disney+</span>
+    <span><i class="fa-solid fa-video"></i> HBO Max</span>
+    <span><i class="fa-solid fa-box-open"></i> Prime Video</span>
+    <span><i class="fa-solid fa-music"></i> Spotify Premium</span>
+    <span><i class="fa-solid fa-play"></i> YouTube Premium</span>
+  </div>
+</div>
+
+<!-- ========================================================== -->
+<!-- PLATAFORMAS                                                 -->
+<!-- ========================================================== -->
+<section class="categories" id="plataformas">
+  <div class="container">
+    <div class="section-title reveal">
+      <span class="eyebrow"><i class="fa-solid fa-layer-group"></i>Plataformas</span>
+      <h2>¿Qué quieres ver hoy?</h2>
+      <p>Toca una plataforma para filtrar el catálogo o sigue bajando para ver todo.</p>
+    </div>
+    <div class="cat-grid" id="catGrid"></div>
+  </div>
+</section>
+
+<!-- ========================================================== -->
+<!-- CATÁLOGO                                                    -->
+<!-- ========================================================== -->
+<section class="catalog" id="catalogo">
+  <div class="container">
+    <div class="section-title reveal">
+      <span class="eyebrow"><i class="fa-solid fa-tags"></i>Catálogo</span>
+      <h2>Nuestras cuentas premium</h2>
+      <p>Cada cuenta incluye garantía y se entrega por WhatsApp una vez confirmado el pago.</p>
+    </div>
+
+    <div class="filter-bar reveal">
+      <div class="search">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="searchInput" placeholder="Buscar por nombre, plan o plataforma…">
+      </div>
+      <div class="chips" id="chips"></div>
+    </div>
+
+    <div class="grid-products" id="productGrid"></div>
+
+    <div class="empty-state" id="emptyState">
+      <i class="fa-solid fa-tv"></i>
+      <h3>No encontramos cuentas</h3>
+      <p>Intenta con otra palabra o pulsa el botón para ver todo el catálogo.</p>
+      <button class="btn btn-primary" onclick="resetFilters()"><i class="fa-solid fa-rotate-left"></i> Ver todo</button>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================== -->
+<!-- CÓMO FUNCIONA / CONDICIONES                                 -->
+<!-- ========================================================== -->
+<section class="howto" id="condiciones">
+  <div class="container">
+    <div class="howto-title reveal">
+      <span class="howto-eyebrow"><i class="fa-solid fa-list-check"></i> Proceso de compra</span>
+      <h2>¿Cómo funciona?</h2>
+      <p>Comprar tu cuenta es muy fácil y la recibes en minutos.</p>
+    </div>
+
+    <div class="howto-snake">
+      <div class="howto-cell">
+        <div class="howto-card reveal" style="transition-delay:.05s;">
+          <span class="howto-num">01</span>
+          <div class="howto-icon"><i class="fa-solid fa-tv"></i></div>
+          <h3>Elige tu cuenta</h3>
+          <p>Explora el catálogo y selecciona la plataforma y el plan que deseas.</p>
+        </div>
+      </div>
+      <div class="howto-cell">
+        <div class="howto-card reveal" style="transition-delay:.15s;">
+          <span class="howto-num">02</span>
+          <div class="howto-icon"><i class="fa-solid fa-cart-shopping"></i></div>
+          <h3>Arma tu pedido</h3>
+          <p>Indica la duración del plan y la cantidad de cuentas que necesitas.</p>
+        </div>
+      </div>
+      <div class="howto-cell">
+        <div class="howto-card reveal" style="transition-delay:.25s;">
+          <span class="howto-num">03</span>
+          <div class="howto-icon"><i class="fa-solid fa-paper-plane"></i></div>
+          <h3>Envía tu pedido</h3>
+          <p>Completa tus datos de contacto y envíanos tu solicitud por WhatsApp.</p>
+        </div>
+      </div>
+      <div class="howto-cell">
+        <div class="howto-card reveal" style="transition-delay:.05s;">
+          <span class="howto-num">04</span>
+          <div class="howto-icon"><i class="fa-solid fa-credit-card"></i></div>
+          <h3>Realiza el pago</h3>
+          <p>Confirmamos disponibilidad y coordinamos contigo el método de pago.</p>
+        </div>
+      </div>
+      <div class="howto-cell">
+        <div class="howto-card reveal" style="transition-delay:.15s;">
+          <span class="howto-num">05</span>
+          <div class="howto-icon"><i class="fa-solid fa-comments"></i></div>
+          <h3>Recibe tu cuenta</h3>
+          <p>En cuanto se confirma el pago, te enviamos los datos de acceso por la misma conversación.</p>
+        </div>
+      </div>
+      <div class="howto-cell">
+        <div class="howto-card reveal" style="transition-delay:.25s;">
+          <span class="howto-num">06</span>
+          <div class="howto-icon"><i class="fa-solid fa-shield-halved"></i></div>
+          <h3>Disfruta con garantía</h3>
+          <p>Tu cuenta cuenta con garantía de reemplazo. Si falla por causas ajenas a tu uso, la reponemos.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="howto-note reveal">
+      <i class="fa-solid fa-circle-info"></i>
+      <span>La cuenta se entrega únicamente después de confirmar el pago. El valor mostrado puede variar según promociones y disponibilidad.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================== -->
+<!-- GARANTÍA Y CONDICIONES DE USO                               -->
+<!-- ========================================================== -->
+<section class="warranty" id="garantia">
+  <div class="container">
+    <div class="section-title reveal">
+      <span class="eyebrow"><i class="fa-solid fa-shield-halved"></i>Garantía</span>
+      <h2>Compra con confianza</h2>
+      <p>Todas nuestras cuentas incluyen garantía y te acompañamos en cada paso.</p>
+    </div>
+
+    <div class="warranty-grid">
+      <div class="war-card reveal">
+        <div class="war-ico"><i class="fa-solid fa-rotate-left"></i></div>
+        <h3>Garantía de reemplazo</h3>
+        <p>Si tu cuenta falla dentro del plazo de garantía por causas ajenas a tu uso, la reemplazamos en un máximo de 24 a 48 horas.</p>
+      </div>
+      <div class="war-card gold reveal" style="transition-delay:.1s;">
+        <div class="war-ico"><i class="fa-solid fa-bolt"></i></div>
+        <h3>Elección de tu garantía</h3>
+        <p>Cada plan indica su plazo de garantía. La vigencia se cuenta desde la entrega de los datos de acceso.</p>
+      </div>
+      <div class="war-card reveal" style="transition-delay:.2s;">
+        <div class="war-ico"><i class="fa-solid fa-headset"></i></div>
+        <h3>Atención en la entrega</h3>
+        <p>Si algo falla al iniciar sesión, escríbenos por WhatsApp y te ayudamos paso a paso antes de cualquier reemplazo.</p>
+      </div>
+    </div>
+
+    <div class="terms-box reveal">
+      <h3><i class="fa-solid fa-scale-balanced"></i> Condiciones de uso</h3>
+      <ol>
+        <li>La cuenta se entrega por WhatsApp después de confirmar el pago. No compartimos datos de acceso por ningún otro medio.</li>
+        <li>Las cuentas son personales e intransferibles: no se permite revender, compartir ni ceder el acceso a terceros.</li>
+        <li>No cambies la contraseña ni los datos de la cuenta sin avisarnos primero. Esto podría hacerte perder la garantía.</li>
+        <li>El número de dispositivos permite solo el establecido según el plan. El uso en más dispositivos puede bloquear la cuenta.</li>
+        <li>La garantía cubre el reemplazo por fallas de la cuenta; no cubre el mal uso, el cambio de datos por tu parte ni la suspensión por incumplimiento de estas condiciones.</li>
+        <li>Para hacer valer la garantía, contáctanos por WhatsApp con el nombre con el que compraste y la fecha del pedido.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================== -->
+<!-- CONTACTO                                                    -->
+<!-- ========================================================== -->
+<section class="contact" id="contacto">
+  <div class="container">
+    <div class="contact-grid">
+      <div class="reveal">
+        <div class="section-title" style="text-align:left;">
+          <span class="eyebrow"><i class="fa-solid fa-envelope-open-text"></i>Contacto</span>
+          <h2>Hablemos de tu próxima cuenta</h2>
+          <p>Resolvemos dudas, atendemos pedidos y hacemos valer tu garantía.</p>
+        </div>
+        <div class="contact-cards">
+          <div class="contact-row">
+            <div class="ic ic-wa"><i class="fa-brands fa-whatsapp"></i></div>
+            <div class="txt"><small>WhatsApp</small><br><b>Escríbenos por WhatsApp</b></div>
+          </div>
+          <div class="contact-row">
+            <div class="ic ic-mail"><i class="fa-solid fa-envelope"></i></div>
+            <div class="txt"><small>Correo</small><br><b>contacto@streampremium23.com</b></div>
+          </div>
+          <div class="contact-row">
+            <div class="ic ic-ig"><i class="fa-brands fa-instagram"></i></div>
+            <div class="txt"><small>Instagram</small><br><b>@streampremium23</b></div>
+          </div>
+          <div class="contact-row">
+            <div class="ic ic-tt"><i class="fa-brands fa-tiktok"></i></div>
+            <div class="txt"><small>TikTok</small><br><b>@streampremium23</b></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="contact-hero reveal">
+        <h3>¿Lista para empezar a ver?</h3>
+        <p>Escríbenos por WhatsApp y te ayudamos a elegir la cuenta ideal, con entrega inmediata y garantía.</p>
+        <a href="#" target="_blank" rel="noopener" class="btn btn-gold"><i class="fa-brands fa-whatsapp"></i> Escríbenos por WhatsApp</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================== -->
+<!-- FOOTER                                                      -->
+<!-- ========================================================== -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="f-logo">
+          <span class="f-logo-text">
+            <span class="d">Stream Premium23</span>
+            <span class="c">Cuentas premium</span>
+          </span>
+        </div>
+        <p class="tagline">“Tu streaming favorito, al mejor precio.”</p>
+        <div class="foot-social">
+          <a href="#" target="_blank" rel="noopener" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>
+          <a href="#" target="_blank" rel="noopener" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+          <a href="#" target="_blank" rel="noopener" aria-label="TikTok"><i class="fa-brands fa-tiktok"></i></a>
+        </div>
+      </div>
+      <div>
+        <h4>Explora</h4>
+        <ul>
+          <li><a href="#inicio">Inicio</a></li>
+          <li><a href="#plataformas">Plataformas</a></li>
+          <li><a href="#catalogo">Catálogo</a></li>
+          <li><a href="#" onclick="abrirPedido(event)">Mi pedido</a></li>
+          <li><a href="#condiciones">Condiciones</a></li>
+          <li><a href="#garantia">Garantía</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Contacto</h4>
+        <ul>
+          <li><a href="#" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp" style="margin-right:.4rem;"></i>WhatsApp</a></li>
+          <li><a href="mailto:contacto@streampremium23.com"><i class="fa-regular fa-envelope" style="margin-right:.4rem;"></i>contacto@streampremium23.com</a></li>
+          <li><a href="#" target="_blank" rel="noopener"><i class="fa-brands fa-instagram" style="margin-right:.4rem;"></i>Instagram</a></li>
+          <li><a href="#" target="_blank" rel="noopener"><i class="fa-brands fa-tiktok" style="margin-right:.4rem;"></i>TikTok</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      © 2026 Stream Premium23. Todos los derechos reservados. · Hecho con <i class="fa-solid fa-heart heart"></i> y mucho streaming.
+      <a href="admin.html" class="admin-link" title="Acceso administrador" aria-label="Acceso administrador"><i class="fa-solid fa-lock"></i></a>
+    </div>
+  </div>
+</footer>
+
+<!-- ========================================================== -->
+<!-- DRAWER: MI PEDIDO                                           -->
+<!-- ========================================================== -->
+<aside class="drawer" id="cartDrawer">
+  <div class="drawer-backdrop" onclick="cerrarPedido()"></div>
+  <div class="drawer-panel">
+    <div class="drawer-head">
+      <h3><i class="fa-solid fa-bag-shopping"></i> Mi pedido</h3>
+      <button class="modal-close" style="position:static;" onclick="cerrarPedido()" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="drawer-body" id="drawerBody"></div>
+    <div class="drawer-foot" id="drawerFoot"></div>
+  </div>
+</aside>
+
+<!-- ========================================================== -->
+<!-- MODAL: DETALLE DE CUENTA                                    -->
+<!-- ========================================================== -->
+<div class="modal" id="productModal">
+  <div class="modal-backdrop" onclick="cerrarCuenta()"></div>
+  <div class="modal-dialog">
+    <button class="modal-close" onclick="cerrarCuenta()" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+    <div class="product-modal-head" id="pmHead"></div>
+    <div class="product-modal-body" id="pmBody"></div>
+  </div>
+</div>
+
+<!-- ========================================================== -->
+<!-- MODAL: SOLICITAR PEDIDO                                     -->
+<!-- ========================================================== -->
+<div class="modal" id="orderModal">
+  <div class="modal-backdrop" onclick="cerrarPedidoModal()"></div>
+  <div class="modal-dialog" style="max-width:600px;">
+    <button class="modal-close" onclick="cerrarPedidoModal()" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+
+    <div id="orderFormView">
+      <div class="product-modal-body">
+        <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.4rem;">
+          <i class="fa-solid fa-paper-plane" style="color:var(--fucsia);"></i>
+          <h3 style="font-size:1.4rem;">Solicitar pedido</h3>
+        </div>
+        <p style="font-size:.9rem;color:#b08a90;margin-bottom:1.2rem;">Cuéntanos tus datos y te escribimos por WhatsApp para confirmar disponibilidad, pago y entrega de la cuenta.</p>
+
+        <div class="order-resume" id="orderResume"></div>
+
+        <form id="orderForm" novalidate>
+          <div class="form-grid">
+            <div class="field full">
+              <label for="oNombre">Nombre completo *</label>
+              <input type="text" id="oNombre" placeholder="Tu nombre">
+              <span class="msg">Ingresa tu nombre.</span>
+            </div>
+            <div class="field">
+              <label for="oWhats">WhatsApp *</label>
+              <input type="tel" id="oWhats" placeholder="300 123 4567">
+              <span class="msg">Ingresa tu WhatsApp.</span>
+            </div>
+            <div class="field">
+              <label for="oCorreo">Correo *</label>
+              <input type="email" id="oCorreo" placeholder="tucorreo@email.com">
+              <span class="msg">Correo no válido.</span>
+            </div>
+          </div>
+          <input type="text" name="website" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true">
+          <button type="submit" class="btn btn-primary btn-block" style="margin-top:1.1rem;">
+            <i class="fa-solid fa-paper-plane"></i> Enviar solicitud
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div class="order-success" id="orderSuccess">
+      <div class="big-ico"><i class="fa-solid fa-check"></i></div>
+      <h3 style="margin-bottom:.5rem;">¡Solicitud recibida!</h3>
+      <p style="color:#b08a90;margin-bottom:1.4rem;">Gracias por confiar en Stream Premium23. Te contactaremos por WhatsApp para confirmar el pago y entregarte tu cuenta.</p>
+      <a class="btn btn-gold" id="waOrderBtn" href="#" target="_blank" rel="noopener">
+        <i class="fa-brands fa-whatsapp"></i> Continuar por WhatsApp
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================================== -->
+<!-- TOAST + BOTÓN FLOTANTE                                      -->
+<!-- ========================================================== -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<button class="floating-cart" id="floatingCart" onclick="abrirPedido(event)">
+  <i class="fa-solid fa-bag-shopping"></i> Mi pedido
+  <span class="f-badge" id="fBadge">0</span>
+</button>
+<script src="js/config.js"></script>
+<script src="js/store.js"></script>
+</body>
+</html>

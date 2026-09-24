@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stream Premium23 · Administrador</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23D82734'/><text x='50' y='68' font-size='52' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold'>S</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<div id="loginView" class="view">
+  <div class="login-card">
+    <div class="login-logo">
+      <span class="d" style="font-family:'Playfair Display',serif;font-weight:700;font-size:1.6rem;color:var(--negro);">Stream Premium23</span>
+    </div>
+    <h2>Acceso administrador</h2>
+    <p class="login-sub">Inicia sesión para gestionar el catálogo</p>
+    <form id="loginForm" novalidate>
+      <label>Email
+        <input type="email" id="admEmail" autocomplete="email" required>
+      </label>
+      <label>Contraseña
+        <input type="password" id="admPass" autocomplete="current-password" required>
+      </label>
+      <span class="msg" id="loginMsg"></span>
+      <button type="submit" class="btn primary block"><i class="fa-solid fa-right-to-bracket"></i> Iniciar sesión</button>
+    </form>
+    <a class="volver" href="index.html"><i class="fa-solid fa-arrow-left"></i> Volver a la tienda</a>
+  </div>
+</div>
+
+<!-- ============ DASHBOARD ============ -->
+<div id="dashView" class="view dashview hidden">
+  <div class="dash-grid">
+    <aside class="adm-nav">
+      <div class="nav-brand">
+        <span><b>Stream Premium23</b><small>Cuentas premium · Admin</small></span>
+      </div>
+
+      <nav class="nav-links">
+        <button class="nav-link active" id="btnNavProductos" title="Cuentas"><i class="fa-solid fa-tv"></i><span>Cuentas</span></button>
+        <button class="nav-link" id="btnNavPedidos" title="Pedidos"><i class="fa-solid fa-bag-shopping"></i><span>Pedidos</span><em class="nav-badge" id="badgePedidos">0</em></button>
+        <a class="nav-link" href="index.html" target="_blank" title="Ver tienda"><i class="fa-solid fa-store"></i><span>Ver tienda</span></a>
+      </nav>
+
+      <div class="nav-foot">
+        <button class="nav-link" id="btnLogout" title="Cerrar sesión"><i class="fa-solid fa-right-from-bracket"></i><span>Cerrar sesión</span></button>
+      </div>
+    </aside>
+
+    <main class="adm-main">
+      <!-- CUENTAS -->
+      <section class="view-sec" id="productosView">
+        <div class="adm-top">
+          <div>
+            <h1>Cuentas</h1>
+            <p class="sub">Estas cuentas se muestran en la tienda online</p>
+          </div>
+          <button class="btn primary" id="btnNuevo"><i class="fa-solid fa-plus"></i> Nueva cuenta</button>
+        </div>
+
+        <div class="stats" id="stats"></div>
+
+        <div class="adm-toolbar">
+          <div class="search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="admSearch" placeholder="Buscar por nombre o descripción…">
+          </div>
+          <select id="admFiltroCat"></select>
+        </div>
+
+        <div class="adm-list" id="admList"></div>
+        <div class="empty-adm hidden" id="admEmpty">No hay cuentas con esos filtros.</div>
+
+        <p class="hint"><i class="fa-solid fa-circle-info"></i> Consejo: deja el precio vacío para mostrar "Consultar" en la tienda. El stock muestra cuántas quedan y el sistema marca "Agotado" cuando llega a 0. Las promos se activan solas según las fechas que definas.</p>
+      </section>
+
+      <!-- PEDIDOS -->
+      <section class="view-sec hidden" id="pedidosView">
+        <div class="adm-top">
+          <div>
+            <h1>Pedidos</h1>
+            <p class="sub">Pedidos solicitados desde la tienda</p>
+          </div>
+        </div>
+
+        <div class="adm-toolbar">
+          <div class="search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="solSearch" placeholder="Buscar por nombre, WhatsApp, correo o mensaje…">
+          </div>
+          <select id="solFiltroEstado">
+            <option value="">Todos los estados</option>
+            <option value="nueva">Nueva</option>
+            <option value="vista">Vista</option>
+            <option value="atendida">Atendida</option>
+            <option value="cerrada">Cerrada</option>
+          </select>
+        </div>
+
+        <div class="sol-list" id="solList"></div>
+        <div class="empty-adm hidden" id="solEmpty">No hay pedidos con esos filtros.</div>
+
+        <p class="hint"><i class="fa-solid fa-circle-info"></i> Cada pedido se guarda automáticamente en Supabase cuando el cliente envía el formulario en la tienda, además del mensaje de WhatsApp. Entrega la cuenta después de confirmar el pago.</p>
+      </section>
+    </main>
+  </div>
+</div>
+
+<!-- ============ FORMULARIO MODAL ============ -->
+<div class="modal" id="formModal">
+  <div class="mod-backdrop" onclick="cerrarForm()"></div>
+  <div class="mod-card">
+    <div class="mod-head">
+      <h2 id="modTitle">Nueva cuenta</h2>
+      <button class="x" onclick="cerrarForm()" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <form id="productForm" novalidate>
+      <div class="grid2">
+        <label>Nombre *<input type="text" id="fNombre" required placeholder="Ej: Netflix Premium 4 pantallas"></label>
+        <label>Plataforma *
+          <select id="fCategoria">
+            <option value="netflix">Netflix</option>
+            <option value="disney">Disney+</option>
+            <option value="hbomax">HBO Max</option>
+            <option value="prime">Prime Video</option>
+            <option value="spotify">Spotify</option>
+            <option value="youtube">YouTube Premium</option>
+            <option value="otras">Otras plataformas</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="grid2">
+        <label>Stock (cantidad disponible)<input type="number" id="fStock" min="0" step="1" placeholder="Ej: 5"></label>
+        <label>Precio (COP)<input type="number" id="fPrecio" min="0" step="100" placeholder="Vacío = Consultar"></label>
+      </div>
+
+      <label>Garantía<input type="text" id="fGarantia" placeholder="Ej: 30 días de garantía · Reemplazo en 24-48h"></label>
+
+      <label>Descripción<textarea id="fDescripcion" rows="3" placeholder="Describe el plan, pantallas, calidad…"></textarea></label>
+
+      <div class="grid2">
+        <label>Etiqueta o badge<input type="text" id="fEtiqueta" placeholder="Nuevo, Más vendido… (opcional)"></label>
+      </div>
+
+      <div class="foto-zone">
+        <div class="foto-drop" id="fotoDrop">
+          <i class="fa-solid fa-cloud-arrow-up"></i>
+          <span>Arrastra una foto o haz clic para subirla</span>
+          <small>JPG o PNG · Se subirá a Supabase Storage</small>
+        </div>
+        <input type="file" id="fFoto" accept="image/*" hidden>
+        <div class="foto-preview hidden" id="fotoPreviewWrap">
+          <img id="fotoPreview" alt="Vista previa">
+          <button type="button" class="small danger" id="btnQuitarFoto"><i class="fa-solid fa-trash-can"></i> Quitar foto</button>
+        </div>
+      </div>
+
+      <fieldset class="promo">
+        <legend><i class="fa-solid fa-tags"></i> Promoción</legend>
+        <div class="grid2">
+          <label>Descuento %<input type="number" id="fDescuento" min="0" max="100" step="1" placeholder="Ej: 20"></label>
+          <label>Etiqueta de la promo<input type="text" id="fEtiquetaPromo" placeholder="Oferta, 2x1…"></label>
+        </div>
+        <div class="grid2">
+          <label>Inicio<input type="date" id="fInicio"></label>
+          <label>Fin<input type="date" id="fFin"></label>
+        </div>
+        <p class="hint">La promo se aplica automáticamente entre esas fechas (se incluye el día de inicio y el de fin).</p>
+      </fieldset>
+
+      <label class="chk"><input type="checkbox" id="fActivo" checked> Cuenta activa (visible en la tienda)</label>
+
+      <span class="msg" id="formMsg"></span>
+
+      <div class="mod-foot">
+        <button type="button" class="btn ghost" onclick="cerrarForm()">Cancelar</button>
+        <button type="submit" class="btn primary" id="btnGuardar"><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script src="js/config.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>

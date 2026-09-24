@@ -1,0 +1,37 @@
+/* =============================================================== */
+/* STREAM PREMIUM23 · Estilos complementarios                      */
+/* Fotos reales, promociones, stock y acceso administrador         */
+/* =============================================================== */
+
+/* ---------- Fotos reales en tarjetas ---------- */
+.product-card .art{padding:0;}
+.product-card .art img,
+.product-card .art .art-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .5s;}
+.product-card:hover .art img,
+.product-card:hover .art .art-img{transform:none;}
+.art-placeholder{display:grid;place-items:center;font-size:2.8rem;color:#fff;opacity:.85;text-shadow:0 6px 18px rgba(86,16,21,.35);}
+.art .tag.promo{background:linear-gradient(135deg,var(--fucsia),var(--magenta));color:#fff;box-shadow:0 4px 12px rgba(224,82,93,.4);}
+
+/* ---------- Precio con descuento ---------- */
+.price-pill{white-space:nowrap;display:inline-flex;align-items:baseline;gap:.3rem;}
+.price-pill.promo{background:linear-gradient(135deg,var(--fucsia),var(--magenta));}
+.p-old{text-decoration:line-through;opacity:.75;font-size:80%;font-weight:500;margin-right:.1rem;}
+.price-pill .p-old{font-weight:600;}
+.pm-price .p-old{font-size:.95rem;color:#c9a1a6;margin-right:.45rem;}
+
+/* ---------- Modal: cabecera con foto ---------- */
+.product-modal-head img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+.product-modal-head .pm-placeholder{font-size:3.4rem;color:#fff;opacity:.85;}
+
+/* ---------- Drawer: miniatura con foto ---------- */
+.cart-item .thumb{overflow:hidden;}
+.cart-item .thumb img{width:100%;height:100%;object-fit:cover;}
+.cart-item .thumb i{font-size:1.35rem;color:#fff;opacity:.85;}
+
+/* ---------- Botón flame card adding ---------- */
+.product-card.adding{animation:addpop .45s;}
+@keyframes addpop{20%{transform:scale(1.03)}50%{transform:scale(.99)}80%{transform:scale(1.01)}100%{transform:scale(1)}}
+
+/* ---------- Acceso administrador (footer) ---------- */
+.admin-link{display:inline-grid;place-items:center;width:32px;height:32px;border-radius:10px;background:rgba(255,255,255,.1);color:#e9c8cc;font-size:.78rem;transition:var(--trans);border:1px solid rgba(255,255,255,.14);}
+.admin-link:hover{background:var(--fucsia);color:#fff;transform:translateY(-2px);}
