@@ -100,12 +100,21 @@ create table if not exists public.solicitudes (
   correo text default '',
   detalles jsonb default '{}'::jsonb,
   mensaje_wa text default '',
+  metodo_pago text default '',
+  comprobante_url text default '',
   estado text default 'nueva' check (estado in ('nueva','vista','atendida','cerrada')),
   created_at timestamptz default now()
 );
 
+-- Columnas nuevas de esta versión (seguro si la tabla ya existía de antes)
+alter table public.solicitudes add column if not exists metodo_pago text default '';
+alter table public.solicitudes add column if not exists comprobante_url text default '';
+
 -- Índice para listar por estado y fecha
 create index if not exists solicitudes_idx on public.solicitudes (estado, created_at desc);
+
+-- Índice para filtrar pedidos por método de pago
+create index if not exists solicitudes_metodo_idx on public.solicitudes (metodo_pago);
 
 -- Seguridad: RLS
 alter table public.solicitudes enable row level security;
@@ -165,6 +174,108 @@ drop trigger if exists trg_solicitudes_anti_spam on public.solicitudes;
 create trigger trg_solicitudes_anti_spam
   before insert on public.solicitudes
   for each row execute function public.solicitudes_anti_spam();
+
+-- ================================================================
+-- 7) BANNERS PUBLICITARIOS (carrusel de la parte superior)
+-- ================================================================
+
+-- Tabla de banners
+create table if not exists public.banners (
+  id uuid primary key default gen_random_uuid(),
+  titulo text default '',
+  subtitulo text default '',
+  imagen_url text default '',
+  enlace text default '',
+  orden integer default 0,
+  activo boolean default true,
+  created_at timestamptz default now()
+);
+
+-- Índice de orden (el carrusel de la tienda ordena por esto)
+create index if not exists banners_orden_idx on public.banners (orden, created_at);
+
+-- Seguridad: RLS
+alter table public.banners enable row level security;
+
+-- Lectura pública: cualquiera puede ver los banners (la tienda)
+drop policy if exists "banners_lectura_publica" on public.banners;
+create policy "banners_lectura_publica"
+  on public.banners for select
+  using (true);
+
+-- Solo el admin autenticado puede crear banners
+drop policy if exists "banners_admin_insert" on public.banners;
+create policy "banners_admin_insert"
+  on public.banners for insert
+  with check (auth.role() = 'authenticated');
+
+-- Solo el admin autenticado puede editar banners
+drop policy if exists "banners_admin_update" on public.banners;
+create policy "banners_admin_update"
+  on public.banners for update
+  using (auth.role() = 'authenticated');
+
+-- Solo el admin autenticado puede eliminar banners
+drop policy if exists "banners_admin_delete" on public.banners;
+create policy "banners_admin_delete"
+  on public.banners for delete
+  using (auth.role() = 'authenticated');
+
+-- 8) Storage: bucket público para imágenes de banners (solo admin sube)
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('banners', 'banners', true, 5242880, array['image/png','image/jpeg','image/webp'])
+on conflict (id) do nothing;
+
+drop policy if exists "storage_banners_lectura" on storage.objects;
+create policy "storage_banners_lectura"
+  on storage.objects for select
+  using (bucket_id = 'banners');
+
+drop policy if exists "storage_banners_insert" on storage.objects;
+create policy "storage_banners_insert"
+  on storage.objects for insert
+  with check (bucket_id = 'banners' and auth.role() = 'authenticated');
+
+drop policy if exists "storage_banners_update" on storage.objects;
+create policy "storage_banners_update"
+  on storage.objects for update
+  using (bucket_id = 'banners' and auth.role() = 'authenticated');
+
+drop policy if exists "storage_banners_delete" on storage.objects;
+create policy "storage_banners_delete"
+  on storage.objects for delete
+  using (bucket_id = 'banners' and auth.role() = 'authenticated');
+
+-- 9) Storage: bucket público para comprobantes de pago
+-- Cualquier cliente puede SUBIR su captura (el insert es público y anónimo),
+-- pero solo el admin autenticado puede borrarlas (evita spam de eliminación).
+-- Los archivos se suben con nombre UUID (no adivinable).
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('comprobantes', 'comprobantes', true, 5242880, array['image/png','image/jpeg','image/webp'])
+on conflict (id) do nothing;
+
+-- Lectura pública: necesaria para mostrar el comprobante en la tienda y en el admin
+drop policy if exists "storage_comprobantes_lectura" on storage.objects;
+create policy "storage_comprobantes_lectura"
+  on storage.objects for select
+  using (bucket_id = 'comprobantes');
+
+-- Insert público y anónimo: el cliente sube su captura de pago en el formulario
+drop policy if exists "storage_comprobantes_insert_publico" on storage.objects;
+create policy "storage_comprobantes_insert_publico"
+  on storage.objects for insert
+  with check (bucket_id = 'comprobantes');
+
+-- Solo el admin autenticado puede modificar/eliminar comprobantes
+drop policy if exists "storage_comprobantes_update" on storage.objects;
+create policy "storage_comprobantes_update"
+  on storage.objects for update
+  using (bucket_id = 'comprobantes' and auth.role() = 'authenticated');
+
+drop policy if exists "storage_comprobantes_delete" on storage.objects;
+create policy "storage_comprobantes_delete"
+  on storage.objects for delete
+  using (bucket_id = 'comprobantes' and auth.role() = 'authenticated');
 
 -- ================================================================
 -- Siguiente paso manual:

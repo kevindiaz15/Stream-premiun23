@@ -115,6 +115,20 @@
 </div>
 
 <!-- ========================================================== -->
+<!-- BANNERS PUBLICITARIOS (carrusel)                            -->
+<!-- ========================================================== -->
+<section class="banners" id="banners" aria-label="Promociones">
+  <div class="container">
+    <div class="banner-slider" id="bannerSlider">
+      <div class="banner-track" id="bannerTrack"></div>
+      <button class="banner-arrow prev" id="bannerPrev" onclick="moverBanner(-1)" aria-label="Anterior"><i class="fa-solid fa-chevron-left"></i></button>
+      <button class="banner-arrow next" id="bannerNext" onclick="moverBanner(1)" aria-label="Siguiente"><i class="fa-solid fa-chevron-right"></i></button>
+      <div class="banner-dots" id="bannerDots"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================== -->
 <!-- PLATAFORMAS                                                 -->
 <!-- ========================================================== -->
 <section class="categories" id="plataformas">
@@ -421,6 +435,34 @@
               <input type="email" id="oCorreo" placeholder="tucorreo@email.com">
               <span class="msg">Correo no válido.</span>
             </div>
+            <div class="field full">
+              <label for="oMetodoPago">Método de pago *</label>
+              <select id="oMetodoPago">
+                <option value="">Selecciona el método de pago…</option>
+                <option value="Nequi">Nequi</option>
+                <option value="Bancolombia">Bancolombia</option>
+                <option value="Daviplata">Daviplata</option>
+                <option value="Efecty">Efecty</option>
+                <option value="Otro">Otro</option>
+              </select>
+              <span class="msg">Selecciona tu método de pago.</span>
+            </div>
+            <div class="field full">
+              <label>Comprobante de pago *</label>
+              <div class="comprobante-zone">
+                <div class="cap-drop" id="capDrop">
+                  <i class="fa-solid fa-cloud-arrow-up"></i>
+                  <span>Sube aquí la captura de tu pago</span>
+                  <small>JPG o PNG · Máximo 5 MB</small>
+                </div>
+                <input type="file" id="capFile" accept="image/*" hidden>
+                <div class="cap-preview hidden" id="capPreviewWrap">
+                  <img id="capPreview" alt="Vista previa del comprobante">
+                  <button type="button" class="cap-quitar" id="capQuitar"><i class="fa-solid fa-trash-can"></i> Quitar</button>
+                </div>
+              </div>
+              <span class="msg">Adjunta la captura de tu pago.</span>
+            </div>
           </div>
           <input type="text" name="website" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true">
           <button type="submit" class="btn btn-primary btn-block" style="margin-top:1.1rem;">
@@ -433,7 +475,7 @@
     <div class="order-success" id="orderSuccess">
       <div class="big-ico"><i class="fa-solid fa-check"></i></div>
       <h3 style="margin-bottom:.5rem;">¡Solicitud recibida!</h3>
-      <p style="color:#b08a90;margin-bottom:1.4rem;">Gracias por confiar en Stream Premium23. Te contactaremos por WhatsApp para confirmar el pago y entregarte tu cuenta.</p>
+      <p style="color:#b08a90;margin-bottom:1.4rem;">Gracias por confiar en Stream Premium23. Recibimos tu pedido y tu comprobante de pago. Te contactaremos para confirmarlo y entregarte tu cuenta.</p>
       <a class="btn btn-gold" id="waOrderBtn" href="#" target="_blank" rel="noopener">
         <i class="fa-brands fa-whatsapp"></i> Continuar por WhatsApp
       </a>

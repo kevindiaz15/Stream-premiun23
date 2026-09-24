@@ -172,6 +172,29 @@ input,select,textarea{font-family:inherit;font-size:.95rem;}
 .btn.wa{background:#25d366;color:#fff;}
 .btn.wa:hover{background:#1eb758;transform:translateY(-2px);}
 
+/* ======== PAGO EN PEDIDOS ======== */
+.sol-pago{background:var(--humo);border:1px solid var(--borde);border-radius:14px;padding:.8rem .9rem;display:flex;flex-direction:column;gap:.6rem;}
+.sol-pago-head{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;}
+.sol-metodo{display:inline-flex;align-items:center;gap:.4rem;font-size:.8rem;font-weight:700;color:#7a6a10;background:#fdf3e0;border-radius:99px;padding:.25rem .7rem;}
+.sol-metodo i{color:#e9a64c;}
+.sol-comp{display:flex;flex-direction:column;gap:.35rem;align-items:flex-start;}
+.sol-comp-img{width:130px;height:auto;max-height:190px;object-fit:contain;border-radius:12px;box-shadow:var(--sombra-card);cursor:zoom-in;border:1px solid var(--borde);background:#fff;transition:var(--trans);}
+.sol-comp-img:hover{transform:scale(1.03);box-shadow:0 12px 30px rgba(173,31,42,.18);}
+.sol-comp small{font-size:.68rem;color:#b08a90;text-transform:uppercase;letter-spacing:.05em;}
+.sol-sincomp{font-size:.78rem;color:#b08a90;font-style:italic;}
+
+/* ======== LIGHTBOX ======== */
+.modal.lightbox{align-items:center;padding:2rem 1rem;}
+.lightbox-card{position:relative;max-width:min(720px,94vw);background:#fff;border-radius:20px;box-shadow:0 30px 90px rgba(86,16,21,.5);animation:modin .3s ease;padding:1rem;}
+.lightbox-card .x{position:absolute;top:-14px;right:-14px;width:38px;height:38px;border-radius:50%;background:var(--humo);color:var(--negro);display:grid;place-items:center;font-size:.9rem;transition:var(--trans);box-shadow:0 8px 20px rgba(86,16,21,.25);z-index:2;}
+.lightbox-card .x:hover{background:var(--fucsia);color:#fff;transform:rotate(90deg);}
+.lightbox-card figure{display:flex;flex-direction:column;gap:.6rem;align-items:center;}
+.lightbox-card img{max-width:100%;max-height:78vh;object-fit:contain;border-radius:12px;}
+.lightbox-card figcaption{font-size:.82rem;color:#7c4a50;font-weight:600;}
+
+/* ======== BANNERS (admin) ======== */
+.bthumb-ph{width:100%;height:100%;display:grid;place-items:center;font-size:.7rem;padding:.3rem;color:#fff;background:linear-gradient(135deg,var(--fucsia),var(--magenta));text-align:center;overflow:hidden;}
+
 /* ======== MODAL FORM ======== */
 .modal{position:fixed;inset:0;z-index:1000;display:none;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto;}
 .modal.open{display:flex;}

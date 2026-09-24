@@ -13,6 +13,11 @@ let pedidos = [];           /* Pedidos recibidos desde la tienda */
 let solFiltro = '';
 let solBusqueda = '';
 
+let banners = [];           /* Banners publicitarios */
+let editandoBannerId = null;
+let bannerFotoPendiente = null;
+let quitarBannerFoto = false;
+
 const CATS = [
   ['netflix','Netflix'],['disney','Disney+'],['hbomax','HBO Max'],['prime','Prime Video'],
   ['spotify','Spotify'],['youtube','YouTube Premium'],['otras','Otras plataformas']
@@ -194,11 +199,15 @@ function actualizarBadgePedidos(){
 
 function setVista(v){
   const esPed = v === 'pedidos';
-  $('productosView').classList.toggle('hidden', esPed);
+  const esBan = v === 'banners';
+  $('productosView').classList.toggle('hidden', esPed || esBan);
   $('pedidosView').classList.toggle('hidden', !esPed);
-  $('btnNavProductos').classList.toggle('active', !esPed);
+  $('bannersView').classList.toggle('hidden', !esBan);
+  $('btnNavProductos').classList.toggle('active', !esPed && !esBan);
   $('btnNavPedidos').classList.toggle('active', esPed);
+  $('btnNavBanners').classList.toggle('active', esBan);
   if(esPed) renderPedidos();
+  if(esBan) cargarBanners();
 }
 
 function estadoLabel(e){ return ({nueva:'Nueva',vista:'Vista',atendida:'Atendida',cerrada:'Cerrada'})[e]||e; }
@@ -245,6 +254,19 @@ function solCard(s){
       (s.correo ? '<a href="mailto:'+esc(s.correo)+'"><i class="fa-solid fa-envelope"></i>'+esc(s.correo)+'</a>' : '')+
     '</div>';
 
+  let pago = '';
+  if(s.metodo_pago || s.comprobante_url){
+    let comp = '';
+    if(s.comprobante_url){
+      comp = '<img class="sol-comp-img" src="'+esc(s.comprobante_url)+'" alt="Comprobante de pago" loading="lazy" '+attrClick('abrirComprobante('+JSON.stringify(String(s.comprobante_url))+',this)')+'>';
+    }
+    pago = '<div class="sol-pago">'+
+        '<div class="sol-pago-head"><span class="sol-tipo ped" style="font-size:.66rem;"><i class="fa-solid fa-money-bill-wave"></i>Pago</span>'+
+        (s.metodo_pago ? '<span class="sol-metodo"><i class="fa-solid fa-wallet"></i>'+esc(s.metodo_pago)+'</span>' : '')+'</div>'+
+        (comp ? '<div class="sol-comp">'+comp+'<small>Comprobante adjunto</small></div>' : '<p class="sol-sincomp">Sin captura adjunta</p>')+
+      '</div>';
+  }
+
   return '<div class="sol-card">'+
     '<div class="sol-head">'+
       '<div class="sol-left">'+
@@ -259,6 +281,7 @@ function solCard(s){
       '</div>'+
     '</div>'+
     contacto+
+    pago+
     detPedido(d)+
     (s.mensaje_wa ? '<div class="sol-msg"><pre>'+esc(s.mensaje_wa)+'</pre></div>' : '')+
     '<div class="sol-acc">'+
@@ -303,6 +326,188 @@ async function copiarMensaje(id){
   toast('Mensaje copiado al portapapeles');
 }
 
+/* ---------- Comprobante (lightbox) ---------- */
+function abrirComprobante(url, img){
+  const m = $('compModal');
+  const im = $('compImg');
+  im.src = url;
+  const cap = $('compCaption');
+  cap.textContent = img ? (img.alt || 'Comprobante de pago') : 'Comprobante de pago';
+  m.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function cerrarComprobante(){
+  $('compModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+/* =============================================================== */
+/* BANNERS (publicidad)                                            */
+/* =============================================================== */
+async function cargarBanners(){
+  const { data, error } = await sb.from('banners').select('*').order('orden',{ascending:true}).order('created_at',{ascending:true});
+  if(error){ toast('Error al cargar banners','error'); return; }
+  banners = data || [];
+  renderBannerStats();
+  renderBannerLista();
+}
+
+function renderBannerStats(){
+  const total = banners.length;
+  const activos = banners.filter(b=>b.activo).length;
+  $('bannerStats').innerHTML =
+    '<div class="stat"><div class="ic blue"><i class="fa-solid fa-bullhorn"></i></div><div><b>'+total+'</b><small>Banners totales</small></div></div>'+
+    '<div class="stat"><div class="ic green"><i class="fa-solid fa-circle-check"></i></div><div><b>'+activos+'</b><small>Activos en tienda</small></div></div>';
+}
+
+function bannerThumb(b){
+  return b.imagen_url
+    ? '<img src="'+b.imagen_url+'" alt="">'
+    : '<div class="bthumb-ph">'+esc(b.titulo||'Banner')+'</div>';
+}
+
+function renderBannerLista(){
+  const list = banners;
+  $('bannerEmpty') && $('bannerEmpty').classList.toggle('hidden', list.length>0);
+  $('bannerList').innerHTML = list.map(b=>{
+    const badge = b.activo ? '' : '<span class="adm-off">Oculta</span>';
+    return '<div class="adm-item">'+
+      '<div class="thumb" style="width:92px;height:52px;">'+bannerThumb(b)+'</div>'+
+      '<div class="info">'+
+        '<div class="nm">'+esc(b.titulo||'(sin título)')+' <span class="adm-cat">Or '+esc(String(b.orden))+'</span> '+badge+'</div>'+
+        (b.subtitulo ? '<div class="aroma">'+esc(b.subtitulo)+'</div>' : '')+
+        (b.enlace ? '<div class="aroma"><i class="fa-solid fa-link"></i> '+esc(b.enlace)+'</div>' : '')+
+      '</div>'+
+      '<div class="acc">'+
+        '<label class="switch'+(b.activo?' live':'')+'" title="'+(b.activo?'Activo en tienda':'Oculto de la tienda')+'"><input type="checkbox" '+(b.activo?'checked':'')+' '+attrEvt('onchange','toggleBannerActivo('+JSON.stringify(String(b.id))+',this)')+'><i class="fa-solid '+(b.activo?'fa-eye':'fa-eye-slash')+'"></i></label>'+
+        '<button title="Editar" '+attrClick('abrirBannerForm('+JSON.stringify(String(b.id))+')')+'><i class="fa-solid fa-pen"></i></button>'+
+        '<button title="Eliminar" class="del" '+attrClick('eliminarBanner('+JSON.stringify(String(b.id))+')')+'><i class="fa-solid fa-trash-can"></i></button>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+async function toggleBannerActivo(id, chk){
+  const ok = chk.checked;
+  const { error } = await sb.from('banners').update({ activo: ok }).eq('id', id);
+  if(error){ toast('No se pudo actualizar','error'); cargarBanners(); return; }
+  toast(ok ? 'Banner visible en la tienda' : 'Banner oculto de la tienda');
+  cargarBanners();
+}
+
+async function eliminarBanner(id){
+  const b = banners.find(x=>String(x.id)===String(id));
+  if(!b) return;
+  if(!confirm('¿Eliminar el banner "'+(b.titulo||'sin título')+'" definitivamente?')) return;
+  if(b.imagen_url) await quitarArchivoDeUrl(b.imagen_url, 'banners');
+  const { error } = await sb.from('banners').delete().eq('id', id);
+  if(error){ toast('No se pudo eliminar','error'); return; }
+  toast('Banner eliminado');
+  cargarBanners();
+}
+
+function abrirBannerForm(id){
+  editandoBannerId = id ? String(id) : null;
+  bannerFotoPendiente = null;
+  quitarBannerFoto = false;
+  $('bannerFormMsg').textContent = '';
+  $('bannerModTitle').textContent = editandoBannerId ? 'Editar banner' : 'Nuevo banner';
+
+  const limpiarFoto = ()=>{
+    $('bfotoPreviewWrap').classList.add('hidden');
+    $('bfotoDrop').classList.remove('hidden');
+  };
+
+  if(editandoBannerId){
+    const b = banners.find(x=>String(x.id)===editandoBannerId) || {};
+    $('bfTitulo').value = b.titulo || '';
+    $('bfSubtitulo').value = b.subtitulo || '';
+    $('bfEnlace').value = b.enlace || '';
+    $('bfOrden').value = (b.orden == null) ? 0 : String(b.orden);
+    $('bfActivo').checked = b.activo !== false;
+    if(b.imagen_url){
+      $('bfotoPreview').src = b.imagen_url;
+      $('bfotoPreviewWrap').classList.remove('hidden');
+      $('bfotoDrop').classList.add('hidden');
+    }else{
+      limpiarFoto();
+    }
+  }else{
+    $('bannerForm').reset();
+    $('bfActivo').checked = true;
+    $('bfOrden').value = '0';
+    limpiarFoto();
+  }
+
+  $('bannerFormModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function cerrarBannerForm(){
+  $('bannerFormModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function prepararBannerFoto(file){
+  if(!file) return;
+  if(!file.type.startsWith('image/')){
+    toast('El archivo debe ser una imagen','error');
+    return;
+  }
+  if(file.size > 5 * 1024 * 1024){
+    toast('La imagen supera los 5 MB','error');
+    return;
+  }
+  bannerFotoPendiente = file;
+  quitarBannerFoto = false;
+  $('bfotoPreview').src = URL.createObjectURL(file);
+  $('bfotoPreviewWrap').classList.remove('hidden');
+  $('bfotoDrop').classList.add('hidden');
+}
+
+async function guardarBanner(e){
+  e.preventDefault();
+  const btn = $('btnGuardarBanner');
+  btn.disabled = true;
+
+  try{
+    const payload = {
+      titulo: $('bfTitulo').value.trim(),
+      subtitulo: $('bfSubtitulo').value.trim(),
+      enlace: $('bfEnlace').value.trim(),
+      orden: parseInt($('bfOrden').value, 10) || 0,
+      activo: $('bfActivo').checked
+    };
+
+    let imgUrl = editandoBannerId ? ((banners.find(x=>String(x.id)===editandoBannerId)||{}).imagen_url || '') : '';
+    if(bannerFotoPendiente){
+      const urlNueva = await subirArchivo(bannerFotoPendiente, 'banners');
+      if(imgUrl) await quitarArchivoDeUrl(imgUrl, 'banners');
+      imgUrl = urlNueva;
+    }else if(editandoBannerId && quitarBannerFoto){
+      if(imgUrl) await quitarArchivoDeUrl(imgUrl, 'banners');
+      imgUrl = '';
+    }
+    payload.imagen_url = imgUrl;
+
+    let error = null;
+    if(editandoBannerId){
+      ({ error } = await sb.from('banners').update(payload).eq('id', editandoBannerId));
+    }else{
+      ({ error } = await sb.from('banners').insert([payload]));
+    }
+    if(error) throw error;
+
+    toast(editandoBannerId ? 'Banner actualizado' : 'Banner creado');
+    cerrarBannerForm();
+    cargarBanners();
+  }catch(err){
+    console.error(err);
+    $('bannerFormMsg').textContent = (err && err.message) ? err.message : 'Ocurrió un error al guardar.';
+  }finally{
+    btn.disabled = false;
+  }
+}
+
 /* ---------- Acciones ---------- */
 async function toggleActivo(id, chk){
   const ok = chk.checked;
@@ -324,20 +529,27 @@ async function eliminarCuenta(id){
 }
 
 /* ---------- Storage ---------- */
-async function subirArchivo(file){
-  const path = 'cuentas/' + uid() + '_' + file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
-  const { error } = await sb.storage.from('cuentas').upload(path, file, { upsert: true });
+async function subirArchivo(file, bucket){
+  bucket = bucket || 'cuentas';
+  const path = bucket + '/' + uid() + '_' + file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+  const { error } = await sb.storage.from(bucket).upload(path, file, { upsert: true });
   if(error) throw error;
-  return sb.storage.from('cuentas').getPublicUrl(path).data.publicUrl;
+  return sb.storage.from(bucket).getPublicUrl(path).data.publicUrl;
 }
-async function quitarFotoDeUrl(url){
+async function quitarArchivoDeUrl(url, bucket){
   try{
-    const marca = '/cuentas/';
+    const marca = '/' + (bucket || 'cuentas') + '/';
     const idx = url.indexOf(marca);
     if(idx < 0) return;
     const path = decodeURIComponent(url.slice(idx + marca.length).split('?')[0]);
-    await sb.storage.from('cuentas').remove([path]);
+    await sb.storage.from(bucket || 'cuentas').remove([path]);
   }catch(e){}
+}
+async function subirArchivoCuenta(file){
+  return subirArchivo(file, 'cuentas');
+}
+async function quitarFotoDeUrl(url){
+  return quitarArchivoDeUrl(url, 'cuentas');
 }
 
 /* ---------- Formulario ---------- */
@@ -485,9 +697,10 @@ $('productForm').addEventListener('submit', guardarCuenta);
 $('admSearch').addEventListener('input', renderLista);
 $('admFiltroCat').addEventListener('change', renderLista);
 
-/* Navegación: cuentas / pedidos */
+/* Navegación: cuentas / pedidos / publicidad */
 $('btnNavProductos').addEventListener('click', ()=> setVista('productos'));
 $('btnNavPedidos').addEventListener('click', ()=> setVista('pedidos'));
+$('btnNavBanners').addEventListener('click', ()=> setVista('banners'));
 $('solFiltroEstado').addEventListener('change', e=>{ solFiltro = e.target.value; renderPedidos(); });
 $('solSearch').addEventListener('input', e=>{ solBusqueda = e.target.value.trim().toLowerCase(); renderPedidos(); });
 
@@ -509,9 +722,32 @@ $('btnQuitarFoto').addEventListener('click', ()=>{
   $('fotoDrop').classList.remove('hidden');
 });
 
-/* Cerrar modal con tecla Escape */
+/* Banner: clic y arrastrar */
+$('btnNuevoBanner').addEventListener('click', ()=> abrirBannerForm());
+$('bannerForm').addEventListener('submit', guardarBanner);
+$('bfotoDrop').addEventListener('click', ()=> $('bfFoto').click());
+$('bfFoto').addEventListener('change', e=> prepararBannerFoto(e.target.files[0]));
+['dragover','dragenter'].forEach(evt=>{
+  $('bfotoDrop').addEventListener(evt, e=>{ e.preventDefault(); e.stopPropagation(); $('bfotoDrop').classList.add('over'); });
+});
+['dragleave','drop'].forEach(evt=>{
+  $('bfotoDrop').addEventListener(evt, e=>{ e.preventDefault(); e.stopPropagation(); $('bfotoDrop').classList.remove('over'); });
+});
+$('bfotoDrop').addEventListener('drop', e=> prepararBannerFoto(e.dataTransfer.files[0]));
+$('btnQuitarBannerFoto').addEventListener('click', ()=>{
+  bannerFotoPendiente = null;
+  if(!editandoBannerId){ quitarBannerFoto = false; $('bfotoPreviewWrap').classList.add('hidden'); $('bfotoDrop').classList.remove('hidden'); return; }
+  quitarBannerFoto = true;
+  $('bfotoPreviewWrap').classList.add('hidden');
+  $('bfotoDrop').classList.remove('hidden');
+});
+
+/* Cerrar modales con tecla Escape */
 document.addEventListener('keydown', e=>{
-  if(e.key==='Escape') cerrarForm();
+  if(e.key!=='Escape') return;
+  cerrarForm();
+  cerrarBannerForm();
+  cerrarComprobante();
 });
 
 /* Arranque */

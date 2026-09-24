@@ -109,6 +109,25 @@ img{max-width:100%;display:block;}
 .marquee i{color:#F8C166;}
 @keyframes move{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 
+/* ======== BANNERS PUBLICITARIOS ======== */
+.banners{padding:1.6rem 0 0;}
+.banner-slider{position:relative;border-radius:22px;overflow:hidden;box-shadow:var(--sombra-card);}
+.banner-track{display:flex;transition:transform .6s cubic-bezier(.2,.9,.3,1);}
+.banner-slide{position:relative;min-width:100%;height:clamp(180px,26vw,280px);background-size:cover;background-position:center;display:flex;align-items:flex-end;color:#fff;}
+.banner-sombra{position:absolute;inset:0;background:linear-gradient(180deg,rgba(86,16,21,0) 30%,rgba(86,16,21,.75) 100%);}
+.banner-info{position:relative;z-index:2;padding:1.4rem 1.6rem;max-width:60ch;}
+.banner-info h3{font-family:'Playfair Display',serif;font-size:clamp(1.2rem,2.6vw,1.8rem);color:#fff;margin-bottom:.2rem;line-height:1.2;}
+.banner-info p{font-size:.92rem;color:#ffe4e6;margin-bottom:.7rem;}
+.banner-cta{display:inline-flex;align-items:center;gap:.5rem;background:linear-gradient(135deg,var(--dorado),#e9a64c);color:#561015;font-weight:700;font-size:.85rem;padding:.55rem 1.1rem;border-radius:99px;transition:var(--trans);}
+.banner-cta:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(86,16,21,.3);}
+.banner-arrow{position:absolute;top:50%;transform:translateY(-50%);z-index:5;width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.9);color:var(--negro);display:grid;place-items:center;font-size:.95rem;box-shadow:0 8px 20px rgba(86,16,21,.2);transition:var(--trans);}
+.banner-arrow:hover{background:var(--fucsia);color:#fff;}
+.banner-arrow.prev{left:1rem;}
+.banner-arrow.next{right:1rem;}
+.banner-dots{position:absolute;bottom:.9rem;right:1.2rem;z-index:5;display:flex;gap:.4rem;}
+.banner-dot{width:9px;height:9px;border-radius:99px;background:rgba(255,255,255,.55);transition:var(--trans);}
+.banner-dot.active{background:var(--dorado);width:22px;}
+
 /* ======== SECCIÓN TÍTULOS ======== */
 .section-title{text-align:center;margin-bottom:2.2rem;}
 .section-title .eyebrow{display:inline-flex;align-items:center;gap:.5rem;font-size:.76rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--fucsia);background:var(--lavanda);padding:.35rem .9rem;border-radius:99px;margin-bottom:.8rem;}
@@ -319,6 +338,18 @@ img{max-width:100%;display:block;}
 .field .msg.show{display:block;}
 .field input.err,.field select.err,.field textarea.err{border-color:#e5484d;background:#fff6f6;}
 .hp-field{position:absolute;left:-9999px;opacity:0;height:0;width:0;}
+
+/* ======== ZONA DE COMPROBANTE ======== */
+.comprobante-zone{margin-bottom:.35rem;}
+.cap-drop{border:2px dashed var(--borde);border-radius:16px;padding:1.3rem 1rem;text-align:center;display:flex;flex-direction:column;align-items:center;gap:.35rem;cursor:pointer;transition:var(--trans);background:#faf8ff;}
+.cap-drop:hover,.cap-drop.over{background:var(--lavanda);border-color:var(--fucsia);}
+.cap-drop i{font-size:1.5rem;color:var(--magenta);}
+.cap-drop span{font-size:.86rem;font-weight:600;color:#7c4a50;}
+.cap-drop small{font-size:.72rem;color:#b08a90;}
+.cap-preview{display:flex;flex-direction:column;align-items:center;gap:.6rem;}
+.cap-preview img{max-height:220px;border-radius:16px;box-shadow:var(--sombra-card);object-fit:contain;width:auto;}
+.cap-quitar{display:inline-flex;align-items:center;gap:.4rem;padding:.45rem .85rem;border-radius:10px;font-size:.78rem;font-weight:600;background:#fdecec;color:#e5484d;transition:var(--trans);}
+.cap-quitar:hover{background:#e5484d;color:#fff;}
 .order-resume{background:var(--humo);border:1px solid var(--borde);border-radius:16px;padding:1rem 1.2rem;margin-bottom:1.2rem;}
 .order-resume h4{font-size:.95rem;margin-bottom:.7rem;color:var(--negro);display:flex;align-items:center;gap:.5rem;}
 .order-resume .rl{display:flex;justify-content:space-between;gap:1rem;font-size:.86rem;padding:.22rem 0;}
@@ -372,4 +403,8 @@ img{max-width:100%;display:block;}
   .footer-grid{grid-template-columns:1fr;}
   .stats{grid-template-columns:1fr!important;}
   .grid-products{grid-template-columns:repeat(auto-fill,minmax(240px,1fr));}
+  .banner-slide{height:200px;}
+  .banner-arrow{width:34px;height:34px;font-size:.8rem;}
+  .banner-dots{display:none;}
+  .banner-info{padding:1rem 1.1rem;}
 }

@@ -78,14 +78,94 @@ async function cargarCuentas(){
   return data || [];
 }
 
+async function cargarBanners(){
+  const { data, error } = await sb
+    .from('banners')
+    .select('*')
+    .eq('activo', true)
+    .order('orden', { ascending: true })
+    .order('created_at', { ascending: true });
+  if(error) throw error;
+  return data || [];
+}
+
 /* Guarda el pedido en Supabase sin bloquear el flujo de WhatsApp */
-function registrarPedido(nombre, whatsapp, correo, detalles, mensaje_wa){
+function registrarPedido(nombre, whatsapp, correo, detalles, mensaje_wa, metodo_pago, comprobante_url){
   if(!sb) return;
-  sb.from('solicitudes').insert([{ tipo:'pedido', nombre, whatsapp, correo, detalles, mensaje_wa, estado:'nueva' }])
+  sb.from('solicitudes').insert([{ tipo:'pedido', nombre, whatsapp, correo, detalles, mensaje_wa, metodo_pago: metodo_pago||'', comprobante_url: comprobante_url||'', estado:'nueva' }])
     .then(r=>{
       if(r.error) console.warn('No se pudo guardar el pedido en Supabase:', r.error.message);
     })
     .catch(e=>console.warn('No se pudo guardar el pedido en Supabase:', e));
+}
+
+/* =============================================================== */
+/* BANNERS PUBLICITARIOS (carrusel)                                */
+/* =============================================================== */
+let bannersDB = [];
+let indiceBanner = 0;
+let timerBanner = null;
+
+function renderBanners(){
+  const track = document.getElementById('bannerTrack');
+  const dots = document.getElementById('bannerDots');
+  const seccion = document.getElementById('banners');
+  if(!bannersDB.length){
+    seccion.style.display = 'none';
+    return;
+  }
+  seccion.style.display = '';
+  indiceBanner = 0;
+  track.innerHTML = bannersDB.map((b, i)=>{
+    const fondo = b.imagen_url
+      ? 'background-image:url(\'' + b.imagen_url + '\')'
+      : 'background:linear-gradient(135deg,var(--fucsia),var(--magenta))';
+    let ext = '';
+    if(b.enlace) ext = '<a class="banner-cta" href="' + b.enlace + '" target="_blank" rel="noopener">Ver más <i class="fa-solid fa-arrow-right"></i></a>';
+    return '<div class="banner-slide' + (i===0?' active':'') + '" style="' + fondo + '">'+
+      '<div class="banner-sombra"></div>'+
+      '<div class="banner-info">'+
+        (b.titulo ? '<h3>'+b.titulo+'</h3>' : '')+
+        (b.subtitulo ? '<p>'+b.subtitulo+'</p>' : '')+
+        ext+
+      '</div>'+
+    '</div>';
+  }).join('');
+  dots.innerHTML = bannersDB.map((b,i)=>
+    '<button class="banner-dot' + (i===0?' active':'') + '" '+attrClick('irBanner('+i+')')+' aria-label="Banner '+(i+1)+'"></button>'
+  ).join('');
+  iniciarAutoBanner();
+}
+
+function moverBanner(d){
+  if(!bannersDB.length) return;
+  indiceBanner = (indiceBanner + d + bannersDB.length) % bannersDB.length;
+  pintarBanner();
+  reiniciarAutoBanner();
+}
+function irBanner(i){
+  indiceBanner = i;
+  pintarBanner();
+  reiniciarAutoBanner();
+}
+function pintarBanner(){
+  const track = document.getElementById('bannerTrack');
+  const dots = document.getElementById('bannerDots');
+  track.style.transform = 'translateX(-' + (indiceBanner * 100) + '%)';
+  track.querySelectorAll('.banner-slide').forEach((el, i)=>el.classList.toggle('active', i===indiceBanner));
+  if(dots) dots.querySelectorAll('.banner-dot').forEach((el, i)=>el.classList.toggle('active', i===indiceBanner));
+}
+function iniciarAutoBanner(){
+  detenerAutoBanner();
+  if(bannersDB.length < 2) return;
+  timerBanner = setInterval(()=>moverBanner(1), 5000);
+}
+function detenerAutoBanner(){
+  if(timerBanner){ clearInterval(timerBanner); timerBanner = null; }
+}
+function reiniciarAutoBanner(){
+  detenerAutoBanner();
+  iniciarAutoBanner();
 }
 
 /* =============================================================== */
@@ -464,6 +544,7 @@ function abrirSolicitudPedido(){
   document.getElementById('orderFormView').style.display='';
   document.querySelectorAll('.field .msg').forEach(m=>m.classList.remove('show'));
   document.querySelectorAll('.field input,.field select,.field textarea').forEach(el=>el.classList.remove('err'));
+  limpiarComprobanteUI(true);
 
   const comp = comprimirCarrito();
   const subtotales = comp.map(subtotalLinea).filter(x=>x!=null);
@@ -495,6 +576,56 @@ function campoError(id, cond){
 function validarEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
 
 /* =============================================================== */
+/* COMPROBANTE DE PAGO                                             */
+/* =============================================================== */
+let comprobanteFile = null;
+
+function limpiarComprobanteUI(resetSel){
+  comprobanteFile = null;
+  if(resetSel) document.getElementById('oMetodoPago').value = '';
+  const file = document.getElementById('capFile');
+  if(file) file.value = '';
+  const prev = document.getElementById('capPreviewWrap');
+  const drop = document.getElementById('capDrop');
+  if(prev){ prev.classList.add('hidden'); prev.querySelector('img').removeAttribute('src'); }
+  if(drop) drop.classList.remove('hidden');
+}
+
+function prepararComprobante(file){
+  if(!file) return;
+  if(!file.type.startsWith('image/')){
+    toast('El comprobante debe ser una imagen','warn');
+    return;
+  }
+  if(file.size > 5 * 1024 * 1024){
+    toast('El comprobante supera los 5 MB','warn');
+    return;
+  }
+  comprobanteFile = file;
+  document.getElementById('capPreview').src = URL.createObjectURL(file);
+  document.getElementById('capPreviewWrap').classList.remove('hidden');
+  document.getElementById('capDrop').classList.add('hidden');
+}
+
+async function subirComprobante(file){
+  const nombre = 'c' + Date.now() + '_' + Math.random().toString(36).slice(2, 10) + '.img';
+  const { error } = await sb.storage.from('comprobantes').upload(nombre, file, { upsert: true });
+  if(error) throw error;
+  return sb.storage.from('comprobantes').getPublicUrl(nombre).data.publicUrl;
+}
+
+document.getElementById('capDrop').addEventListener('click', ()=> document.getElementById('capFile').click());
+document.getElementById('capFile').addEventListener('change', e=> prepararComprobante(e.target.files[0]));
+['dragover','dragenter'].forEach(evt=>{
+  document.getElementById('capDrop').addEventListener(evt, e=>{ e.preventDefault(); e.stopPropagation(); document.getElementById('capDrop').classList.add('over'); });
+});
+['dragleave','drop'].forEach(evt=>{
+  document.getElementById('capDrop').addEventListener(evt, e=>{ e.preventDefault(); e.stopPropagation(); document.getElementById('capDrop').classList.remove('over'); });
+});
+document.getElementById('capDrop').addEventListener('drop', e=> prepararComprobante(e.dataTransfer.files[0]));
+document.getElementById('capQuitar').addEventListener('click', e=>{ e.stopPropagation(); limpiarComprobanteUI(false); });
+
+/* =============================================================== */
 /* ANTI-SPAM                                                       */
 /* =============================================================== */
 const ANTI_KEY = 'stream23_anti_spam_1';
@@ -509,12 +640,21 @@ function antiSpam(form){
   return 'ok';
 }
 
-document.getElementById('orderForm').addEventListener('submit', function(e){
+document.getElementById('orderForm').addEventListener('submit', async function(e){
   e.preventDefault();
   let ok = true;
   ok = !campoError('oNombre', document.getElementById('oNombre').value.trim().length>=2) && ok;
   ok = !campoError('oWhats', /^[0-9]{7,12}$/.test((document.getElementById('oWhats').value||'').replace(/[^0-9]/g,''))) && ok;
   ok = !campoError('oCorreo', validarEmail(document.getElementById('oCorreo').value.trim())) && ok;
+  const metodo = document.getElementById('oMetodoPago').value;
+  ok = !campoError('oMetodoPago', metodo !== '') && ok;
+  const capMsg = document.querySelector('.comprobante-zone + .msg');
+  if(!comprobanteFile){
+    ok = false;
+    if(capMsg) capMsg.classList.add('show');
+  }else{
+    if(capMsg) capMsg.classList.remove('show');
+  }
   if(!ok){ toast('Revisa los campos marcados','warn'); return; }
 
   const proteccion = antiSpam(this);
@@ -535,28 +675,42 @@ document.getElementById('orderForm').addEventListener('submit', function(e){
   let prod = '';
   comp.forEach(l=>{ prod += '\n* '+l.name+' ('+l.plan+') x'+l.qty+(subtotalLinea(l)==null?' (Consultar)':' '+formatCOP(subtotalLinea(l))); });
 
-  let msg = 'Hola, Stream Premium23.\n\nQuiero realizar un pedido.\n\nNombre: '+nombre+'\nCuentas:'+prod+
+  let msg = 'Hola, Stream Premium23.\n\nQuiero realizar un pedido.\n\nNombre: '+nombre+'\nMétodo de pago: '+metodo+'\nCuentas:'+prod+
     '\n\nTotal estimado: '+(hayConsultar?'Consultar':formatCOP(sub))+
-    '\n\nQuedo atento a la confirmación de pago para el envío de la cuenta. Gracias.';
+    '\n\nAdjunto el comprobante de mi pago para tu confirmación y el envío de la cuenta. Gracias.';
 
-  document.getElementById('waOrderBtn').href = PREFIJO_WA+'?text='+encodeURIComponent(msg);
+  const btn = this.querySelector('button[type="submit"]');
+  if(btn){ btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando…'; }
 
-  registrarPedido(
-    nombre,
-    (document.getElementById('oWhats').value||'').trim(),
-    (document.getElementById('oCorreo').value||'').trim(),
-    {
-      items: comp.map(l=>({ nombre: l.name, plan: l.plan||'', plataforma: l.plataforma||'', cantidad: l.qty, subtotal: subtotalLinea(l) })),
-      total: hayConsultar ? null : sub
-    },
-    msg
-  );
+  try{
+    let comprobante_url = '';
+    if(comprobanteFile) comprobante_url = await subirComprobante(comprobanteFile);
 
-  document.getElementById('orderFormView').style.display='none';
-  document.getElementById('orderSuccess').classList.add('show');
-  carrito = [];
-  guardarCarrito();
-  toast('¡Pedido recibido con éxito!','success');
+    document.getElementById('waOrderBtn').href = PREFIJO_WA+'?text='+encodeURIComponent(msg);
+
+    registrarPedido(
+      nombre,
+      (document.getElementById('oWhats').value||'').trim(),
+      (document.getElementById('oCorreo').value||'').trim(),
+      {
+        items: comp.map(l=>({ nombre: l.name, plan: l.plan||'', plataforma: l.plataforma||'', cantidad: l.qty, subtotal: subtotalLinea(l) })),
+        total: hayConsultar ? null : sub
+      },
+      msg,
+      metodo,
+      comprobante_url
+    );
+
+    document.getElementById('orderFormView').style.display='none';
+    document.getElementById('orderSuccess').classList.add('show');
+    carrito = [];
+    guardarCarrito();
+    toast('¡Pedido recibido con éxito!','success');
+  }catch(err){
+    console.error('Error enviando el pedido', err);
+    toast('No se pudo enviar tu pedido. Intenta de nuevo.','warn');
+    if(btn){ btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Enviar solicitud'; }
+  }
 });
 
 /* =============================================================== */
@@ -619,6 +773,14 @@ async function init(){
     btn.innerHTML = '<i class="fa-solid fa-rotate-left"></i> Reintentar';
     btn.onclick = ()=>{ location.reload(); };
     vacio.classList.add('show');
+  }
+  try{
+    bannersDB = await cargarBanners();
+    renderBanners();
+  }catch(err){
+    console.warn('Error cargando banners', err);
+    const seccion = document.getElementById('banners');
+    if(seccion) seccion.style.display = 'none';
   }
 }
 init();

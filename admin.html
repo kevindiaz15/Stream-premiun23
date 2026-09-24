@@ -47,6 +47,7 @@
       <nav class="nav-links">
         <button class="nav-link active" id="btnNavProductos" title="Cuentas"><i class="fa-solid fa-tv"></i><span>Cuentas</span></button>
         <button class="nav-link" id="btnNavPedidos" title="Pedidos"><i class="fa-solid fa-bag-shopping"></i><span>Pedidos</span><em class="nav-badge" id="badgePedidos">0</em></button>
+        <button class="nav-link" id="btnNavBanners" title="Publicidad"><i class="fa-solid fa-bullhorn"></i><span>Publicidad</span></button>
         <a class="nav-link" href="index.html" target="_blank" title="Ver tienda"><i class="fa-solid fa-store"></i><span>Ver tienda</span></a>
       </nav>
 
@@ -109,6 +110,24 @@
         <div class="empty-adm hidden" id="solEmpty">No hay pedidos con esos filtros.</div>
 
         <p class="hint"><i class="fa-solid fa-circle-info"></i> Cada pedido se guarda automáticamente en Supabase cuando el cliente envía el formulario en la tienda, además del mensaje de WhatsApp. Entrega la cuenta después de confirmar el pago.</p>
+      </section>
+
+      <!-- PUBLICIDAD -->
+      <section class="view-sec hidden" id="bannersView">
+        <div class="adm-top">
+          <div>
+            <h1>Publicidad</h1>
+            <p class="sub">Banners que se muestran en el carrusel superior de la tienda</p>
+          </div>
+          <button class="btn primary" id="btnNuevoBanner"><i class="fa-solid fa-plus"></i> Nuevo banner</button>
+        </div>
+
+        <div class="stats" id="bannerStats"></div>
+
+        <div class="sol-list" id="bannerList"></div>
+        <div class="empty-adm hidden" id="bannerEmpty">No hay banners. Crea el primero para publicitar tu tienda.</div>
+
+        <p class="hint"><i class="fa-solid fa-circle-info"></i> Los banners activos se muestran en la parte superior de la tienda en orden. El enlace es opcional: si lo pones, el botón "Ver más" llevará a esa URL (WhatsApp, catálogo, redes…).</p>
       </section>
     </main>
   </div>
@@ -187,6 +206,62 @@
         <button type="submit" class="btn primary" id="btnGuardar"><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
       </div>
     </form>
+  </div>
+</div>
+
+<!-- ============ FORMULARIO MODAL BANNER ============ -->
+<div class="modal" id="bannerFormModal">
+  <div class="mod-backdrop" onclick="cerrarBannerForm()"></div>
+  <div class="mod-card">
+    <div class="mod-head">
+      <h2 id="bannerModTitle">Nuevo banner</h2>
+      <button class="x" onclick="cerrarBannerForm()" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <form id="bannerForm" novalidate>
+      <div class="grid2">
+        <label>Título<input type="text" id="bfTitulo" placeholder="Ej: ¡Semana de la serie!"></label>
+        <label>Subtítulo<input type="text" id="bfSubtitulo" placeholder="Ej: 30% en todos los planes"></label>
+      </div>
+      <div class="grid2">
+        <label>Enlace (opcional)<input type="text" id="bfEnlace" placeholder="https://wa.me/… o #catalogo"></label>
+        <label>Orden<input type="number" id="bfOrden" min="0" step="1" value="0" placeholder="0"></label>
+      </div>
+
+      <div class="foto-zone">
+        <div class="foto-drop" id="bfotoDrop">
+          <i class="fa-solid fa-cloud-arrow-up"></i>
+          <span>Imagen del banner (ideal 1200×400)</span>
+          <small>JPG o PNG · Se subirá a Supabase Storage</small>
+        </div>
+        <input type="file" id="bfFoto" accept="image/*" hidden>
+        <div class="foto-preview hidden" id="bfotoPreviewWrap">
+          <img id="bfotoPreview" alt="Vista previa">
+          <button type="button" class="small danger" id="btnQuitarBannerFoto"><i class="fa-solid fa-trash-can"></i> Quitar imagen</button>
+        </div>
+      </div>
+
+      <label class="chk"><input type="checkbox" id="bfActivo" checked> Banner activo (visible en la tienda)</label>
+
+      <span class="msg" id="bannerFormMsg"></span>
+
+      <div class="mod-foot">
+        <button type="button" class="btn ghost" onclick="cerrarBannerForm()">Cancelar</button>
+        <button type="submit" class="btn primary" id="btnGuardarBanner"><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ LIGHTBOX COMPROBANTE ============ -->
+<div class="modal lightbox" id="compModal">
+  <div class="mod-backdrop" onclick="cerrarComprobante()"></div>
+  <div class="lightbox-card">
+    <button class="x" onclick="cerrarComprobante()" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+    <figure>
+      <img id="compImg" alt="Comprobante de pago">
+      <figcaption id="compCaption"></figcaption>
+    </figure>
   </div>
 </div>
 
