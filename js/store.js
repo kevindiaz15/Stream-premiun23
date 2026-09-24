@@ -114,11 +114,13 @@ function renderBanners(){
   const track = document.getElementById('bannerTrack');
   const dots = document.getElementById('bannerDots');
   const seccion = document.getElementById('banners');
+  const hero = seccion ? seccion.closest('.hero') : null;
+  if(hero) hero.classList.toggle('no-banners', !bannersDB.length);
   if(!bannersDB.length){
-    seccion.style.display = 'none';
+    if(seccion) seccion.style.display = 'none';
     return;
   }
-  seccion.style.display = '';
+  if(seccion) seccion.style.display = '';
   indiceBanner = 0;
   track.innerHTML = bannersDB.map((b, i)=>{
     const fondo = b.imagen_url
@@ -221,7 +223,7 @@ function infoTags(p){
     const s = stockValor(p);
     if(s != null && s > 0 && s <= 5) tags += '<span class="tag stocktag">Quedan '+s+'</span>';
   }
-  return tags;
+  return tags ? '<div class="art-tags">'+tags+'</div>' : '';
 }
 function precioPillHTML(p){
   const info = precioInfo(p);
@@ -826,13 +828,7 @@ async function init(){
   try{
     sb = await clienteSupabase();
     document.getElementById('orderForm')._abierto = Date.now();
-    cuentasDB = await cargarCuentas();
-    cuentasById = new Map(cuentasDB.map(p=>[String(p.id), p]));
-    renderPlataformas();
-    renderChips();
-    renderCatalogo();
-    renderCart();
-    actualizarBadges();
+    await sincronizarCatalogo(false);
   }catch(err){
     console.error('Error cargando catálogo', err);
     const vacio = document.getElementById('emptyState');
@@ -849,7 +845,32 @@ async function init(){
   }catch(err){
     console.warn('Error cargando banners', err);
     const seccion = document.getElementById('banners');
+    const hero = seccion && seccion.closest('.hero');
+    if(hero) hero.classList.add('no-banners');
     if(seccion) seccion.style.display = 'none';
   }
 }
 init();
+
+/* Re-sincroniza el catálogo con la base (stock y promos) cuando la pestaña
+   vuelve a estar visible, sin recargar la página. */
+async function sincronizarCatalogo(silencioso){
+  const modal = document.getElementById('orderModal');
+  if(modal && modal.classList.contains('open')) return;
+  try{
+    cuentasDB = await cargarCuentas();
+    cuentasById = new Map(cuentasDB.map(p=>[String(p.id), p]));
+    renderPlataformas();
+    renderChips();
+    renderCatalogo();
+    renderCart();
+    actualizarBadges();
+  }catch(err){
+    console.warn('No se pudo re-sincronizar el catálogo', err);
+    if(!silencioso) throw err;
+  }
+}
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState === 'visible') sincronizarCatalogo(true);
+});
+window.addEventListener('focus', ()=> sincronizarCatalogo(true));

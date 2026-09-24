@@ -327,6 +327,7 @@ async function cambiarEstado(id, estado){
     actualizarBadgePedidos();
     renderPedidos();
     renderVentas();
+    cargarCuentas();
     toast(data ? 'Venta cerrada · stock descontado' : 'La venta ya tenía el stock descontado');
     return;
   }
