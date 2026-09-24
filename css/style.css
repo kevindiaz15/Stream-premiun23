@@ -84,10 +84,10 @@ img{max-width:100%;display:block;}
 .hero-feats{display:flex;flex-wrap:wrap;gap:.6rem 1.4rem;font-size:.85rem;}
 .hero-feats span{display:inline-flex;align-items:center;gap:.45rem;color:#ffe4e6;}
 .hero-feats i{color:#F8C166;}
-.hero-scene{position:relative;display:flex;align-items:center;justify-content:center;min-height:400px;}
+.hero-scene{position:relative;display:flex;align-items:center;justify-content:center;min-height:0;padding:2px 0;}
 .hero-scene .banners{width:100%;}
 .hero-scene .banner-slider{border-radius:20px;box-shadow:0 26px 56px rgba(86,16,21,.4);}
-.hero-scene .banner-slide{height:clamp(250px,32vw,380px);}
+.hero-scene .banner-slide{height:auto;aspect-ratio:1024/1536;max-height:min(640px,84vh);}
 
 /* ======== CINTA ======== */
 .marquee-wrap{background:#561015;overflow:hidden;padding:.85rem 0;}
@@ -386,8 +386,8 @@ img{max-width:100%;display:block;}
   .hero .container{grid-template-columns:1fr;text-align:center;}
   .hero-copy .lead{margin-inline:auto;}
   .hero-btns,.hero-feats{justify-content:center;}
-  .hero-scene{min-height:0;width:100%;max-width:560px;margin-inline:auto;padding-top:0;}
-  .hero-scene .banner-slide{height:clamp(220px,38vw,300px);}
+  .hero-scene{min-height:0;width:100%;max-width:520px;margin-inline:auto;padding-top:0;}
+  .hero-scene .banner-slide{height:auto;aspect-ratio:1024/1536;max-height:min(480px,70vh);}
   .contact-grid{grid-template-columns:1fr;}
   .howto-snake{grid-template-columns:1fr;}
   .footer-grid{grid-template-columns:1fr 1fr;}
@@ -407,8 +407,8 @@ img{max-width:100%;display:block;}
   .footer-grid{grid-template-columns:1fr;}
   .stats{grid-template-columns:1fr!important;}
   .grid-products{grid-template-columns:repeat(auto-fill,minmax(240px,1fr));}
-  .hero-scene .banner-slide{height:200px;}
-  .banner-slide{height:200px;}
+  .hero-scene .banner-slide{height:auto;aspect-ratio:1024/1536;max-height:380px;}
+  .banner-slide{height:auto;aspect-ratio:1024/1536;max-height:380px;}
   .banner-arrow{width:34px;height:34px;font-size:.8rem;}
   .banner-dots{display:none;}
   .banner-info{padding:1rem 1.1rem;}
