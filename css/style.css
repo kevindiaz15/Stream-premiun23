@@ -379,6 +379,11 @@ img{max-width:100%;display:block;}
 @keyframes heartbeat{0%,100%{transform:scale(1)}25%{transform:scale(1.18)}40%{transform:scale(1)}}
 
 /* ======== RESPONSIVE ======== */
+@media (max-width:1190px){
+  .nav-links{gap:.1rem;}
+  .nav-links a{padding:.45rem .55rem;font-size:.82rem;gap:.35rem;}
+  .cart-btn{padding:.55rem .9rem;}
+}
 @media (max-width:920px){
   .hero .container{grid-template-columns:1fr;text-align:center;}
   .hero-copy .lead{margin-inline:auto;}

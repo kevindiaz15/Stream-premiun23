@@ -145,7 +145,14 @@ input,select,textarea{font-family:inherit;font-size:.95rem;}
 .sol-estado.nueva{border-color:var(--fucsia);color:var(--fucsia);background:#fff0f1;}
 .sol-estado.vista{border-color:var(--lavanda);color:#8a5a60;background:#fdf3f4;}
 .sol-estado.atendida{border-color:#25d366;color:#0f9d4f;background:#effbf3;}
+.sol-estado.garantia{border-color:#f0a500;color:#b37c00;background:#fff8e6;}
 .sol-estado.cerrada{border-color:#c9a1a6;color:#9a8286;background:var(--humo);}
+
+.sol-codigo{display:inline-flex;align-items:center;gap:.35rem;font-size:.78rem;font-weight:700;letter-spacing:.03em;color:#0f9d4f;background:#effbf3;border:1.5px dashed #8fdcb0;border-radius:9px;padding:.28rem .55rem;font-variant-numeric:tabular-nums;}
+.sol-age{font-size:.74rem;color:#b08a90;display:inline-flex;align-items:center;gap:.3rem;}
+.sol-fecha-cierre{font-size:.7rem;color:#0f9d4f;display:inline-flex;align-items:center;gap:.3rem;font-weight:600;}
+.sol-stock-tag{display:inline-flex;align-items:center;gap:.3rem;font-size:.68rem;font-weight:700;color:#0b7a3f;background:#e7f7ec;border-radius:999px;padding:.3rem .6rem;}
+.sol-card.venta .sol-estado{background:none;cursor:default;border-style:solid;}
 .acc-btn{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;background:var(--humo);color:#8a6a70;font-size:.8rem;transition:var(--trans);cursor:pointer;}
 .acc-btn:hover{background:var(--lavanda);color:#fff;}
 .acc-btn.del:hover{background:#e5484d;color:#fff;}
@@ -243,13 +250,15 @@ input,select,textarea{font-family:inherit;font-size:.95rem;}
   .dash-grid{grid-template-columns:1fr;grid-template-rows:auto 1fr;}
   .adm-nav{position:sticky;top:0;z-index:60;height:auto;flex-direction:row;align-items:center;gap:.4rem;padding:.6rem .8rem;}
   .nav-brand{border-bottom:none;margin:0;padding:0;gap:.55rem;}
-  .nav-links{flex-direction:row;flex:1;justify-content:flex-end;}
+  .nav-links{flex-direction:row;flex:1;justify-content:flex-end;overflow-x:auto;scrollbar-width:none;gap:.25rem;}
+  .nav-links::-webkit-scrollbar{display:none;}
   .nav-foot{border-top:none;padding-top:0;flex-direction:row;}
-  .nav-link{padding:.5rem .65rem;justify-content:center;}
+  .nav-link{padding:.5rem .65rem;justify-content:center;white-space:nowrap;}
   .nav-link i{width:auto;}
   .nav-foot .nav-link span{display:none;}
 }
-@media (max-width:920px) and (min-width:600px){.nav-link span{display:inline;}}
+@media (max-width:920px) and (min-width:760px){.nav-link span{display:inline;}}
+@media (max-width:759px){.nav-links .nav-link span{display:none;} .nav-brand small{display:none;}}
 @media (max-width:599px){
   .nav-link span{display:none;}
   .nav-links .nav-link .span{display:none;}
@@ -261,6 +270,15 @@ input,select,textarea{font-family:inherit;font-size:.95rem;}
   .adm-item .acc{margin-left:auto;}
   .adm-top{flex-direction:column;align-items:stretch;}
   .sol-head{flex-direction:column;align-items:stretch;}
-  .sol-head-acc{justify-content:flex-end;}
+  .sol-head-acc{justify-content:flex-end;flex-wrap:wrap;}
   .sol-det{grid-template-columns:1fr 1fr;}
+  .adm-toolbar{flex-direction:column;align-items:stretch;}
+  .adm-toolbar .search{flex-basis:auto;min-width:0;}
+  .adm-toolbar select{width:100%;}
+  .mod-head{padding:1rem 1.1rem;}
+  .mod-head h2{font-size:1.15rem;}
+  .mod-card form{padding:1.1rem 1rem 1.3rem;}
+  .toast-wrap{right:12px;left:12px;top:14px;}
+  .toast{min-width:0;max-width:none;width:auto;}
+  .sol-correo a,.sol-contacto a{word-break:break-word;}
 }

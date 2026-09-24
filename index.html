@@ -41,6 +41,7 @@
         <li><a href="#catalogo"><i class="fa-solid fa-layer-group"></i>Catálogo</a></li>
         <li><a href="#condiciones"><i class="fa-solid fa-list-check"></i>Condiciones</a></li>
         <li><a href="#garantia"><i class="fa-solid fa-shield-halved"></i>Garantía</a></li>
+        <li><a href="#consultar"><i class="fa-solid fa-magnifying-glass"></i>Consultar</a></li>
         <li><a href="#" onclick="abrirPedido(event)"><i class="fa-solid fa-bag-shopping"></i>Mi pedido</a></li>
         <li><a href="#contacto"><i class="fa-solid fa-envelope-open-text"></i>Contacto</a></li>
       </ul>
@@ -326,6 +327,65 @@
 </section>
 
 <!-- ========================================================== -->
+<!-- CONSULTA TU COMPRA                                          -->
+<!-- ========================================================== -->
+<section class="consulta" id="consultar">
+  <div class="container">
+    <div class="section-title reveal">
+      <span class="eyebrow"><i class="fa-solid fa-magnifying-glass"></i> Seguimiento</span>
+      <h2>¿Ya compraste? Consulta tu pedido</h2>
+      <p>Ingresa el código que recibiste (SP-XXXXXX) para ver si tu pedido está siendo atendido, ya fue entregado o está en garantía.</p>
+    </div>
+    <div class="consulta-box reveal">
+      <div class="search">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="consCodigo" placeholder="Ej: SP-123456" maxlength="10" onkeydown="if(event.key==='Enter'){consultarPedido();}">
+      </div>
+      <button class="btn btn-primary" onclick="consultarPedido()"><i class="fa-solid fa-magnifying-glass"></i> Consultar</button>
+    </div>
+    <div id="consResult"></div>
+  </div>
+</section>
+
+<!-- ========================================================== -->
+<!-- MÉTODOS DE PAGO                                             -->
+<!-- ========================================================== -->
+<section class="pagos" id="pagos">
+  <div class="container">
+    <div class="section-title reveal">
+      <span class="eyebrow"><i class="fa-solid fa-credit-card"></i> Métodos de pago</span>
+      <h2>¿A dónde consignar?</h2>
+      <p>Elige tu método y transfiere al dato correspondiente. Después adjunta la captura como comprobante en tu pedido.</p>
+    </div>
+    <div class="pagos-grid">
+      <div class="pago-card reveal">
+        <div class="pago-ico"><i class="fa-solid fa-mobile-screen"></i><b>Nequi</b></div>
+        <div class="pago-row"><small>Número</small><span>300 000 0000</span></div>
+        <div class="pago-row"><small>Alias</small><span>streampremium23</span></div>
+        <div class="pago-row"><small>Titular</small><span>Nombre Apellido</span></div>
+      </div>
+      <div class="pago-card reveal">
+        <div class="pago-ico"><i class="fa-solid fa-building-columns"></i><b>Bancolombia</b></div>
+        <div class="pago-row"><small>Cuenta de ahorros</small><span>000 000000 00</span></div>
+        <div class="pago-row"><small>Titular</small><span>Nombre Apellido</span></div>
+      </div>
+      <div class="pago-card reveal">
+        <div class="pago-ico"><i class="fa-solid fa-mobile-screen-button"></i><b>Daviplata</b></div>
+        <div class="pago-row"><small>Número</small><span>300 000 0000</span></div>
+        <div class="pago-row"><small>Titular</small><span>Nombre Apellido</span></div>
+      </div>
+      <div class="pago-card reveal">
+        <div class="pago-ico"><i class="fa-solid fa-receipt"></i><b>Efecty</b></div>
+        <div class="pago-row"><small>Corresponsal</small><span>Efecty</span></div>
+        <div class="pago-row"><small>Número de referencia</small><span>000000000</span></div>
+        <div class="pago-row"><small>Beneficiario</small><span>Nombre Apellido</span></div>
+      </div>
+    </div>
+    <div class="pago-note reveal"><i class="fa-solid fa-circle-info"></i><span>Estos datos son de ejemplo: confirma los valores reales en el momento de tu compra o al escribirnos por WhatsApp.</span></div>
+  </div>
+</section>
+
+<!-- ========================================================== -->
 <!-- FOOTER                                                      -->
 <!-- ========================================================== -->
 <footer class="footer">
@@ -476,6 +536,11 @@
       <div class="big-ico"><i class="fa-solid fa-check"></i></div>
       <h3 style="margin-bottom:.5rem;">¡Solicitud recibida!</h3>
       <p style="color:#b08a90;margin-bottom:1.4rem;">Gracias por confiar en Stream Premium23. Recibimos tu pedido y tu comprobante de pago. Te contactaremos para confirmarlo y entregarte tu cuenta.</p>
+      <div class="order-code" id="orderCode" style="display:none;">
+        <small>Tu código de seguimiento</small>
+        <b>SP-000000</b>
+        <span>Guárdalo: con él puedes <a href="#consultar">consultar tu pedido</a> y validar tu garantía.</span>
+      </div>
       <a class="btn btn-gold" id="waOrderBtn" href="#" target="_blank" rel="noopener">
         <i class="fa-brands fa-whatsapp"></i> Continuar por WhatsApp
       </a>

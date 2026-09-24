@@ -13,6 +13,10 @@ let pedidos = [];           /* Pedidos recibidos desde la tienda */
 let solFiltro = '';
 let solBusqueda = '';
 
+let ventaBusqueda = '';
+let ventaFiltroEstado = '';
+let ventaFiltroMetodo = '';
+
 let banners = [];           /* Banners publicitarios */
 let editandoBannerId = null;
 let bannerFotoPendiente = null;
@@ -200,24 +204,41 @@ function actualizarBadgePedidos(){
 function setVista(v){
   const esPed = v === 'pedidos';
   const esBan = v === 'banners';
-  $('productosView').classList.toggle('hidden', esPed || esBan);
-  $('pedidosView').classList.toggle('hidden', !esPed);
+  const esVen = v === 'ventas';
+  $('productosView').classList.toggle('hidden', esPed || esBan || esVen);
+  $('pedidosView').classList.toggle('hidden', !esPed || esVen);
   $('bannersView').classList.toggle('hidden', !esBan);
-  $('btnNavProductos').classList.toggle('active', !esPed && !esBan);
+  $('ventasView').classList.toggle('hidden', !esVen);
+  $('btnNavProductos').classList.toggle('active', !esPed && !esBan && !esVen);
   $('btnNavPedidos').classList.toggle('active', esPed);
   $('btnNavBanners').classList.toggle('active', esBan);
+  $('btnNavVentas').classList.toggle('active', esVen);
   if(esPed) renderPedidos();
   if(esBan) cargarBanners();
+  if(esVen) renderVentas();
 }
 
-function estadoLabel(e){ return ({nueva:'Nueva',vista:'Vista',atendida:'Atendida',cerrada:'Cerrada'})[e]||e; }
+function estadoLabel(e){ return ({nueva:'Nueva',vista:'Vista',atendida:'Atendida',garantia:'Garantía',cerrada:'Cerrada'})[e]||e; }
+
+function diasDesde(fecha){
+  if(!fecha) return null;
+  const ms = Date.now() - new Date(fecha).getTime();
+  return Math.floor(ms / 86400000);
+}
+function haceTxt(fecha){
+  const d = diasDesde(fecha);
+  if(d == null) return '';
+  if(d <= 0) return 'hoy';
+  if(d === 1) return 'hace 1 día';
+  return 'hace '+d+' días';
+}
 
 function pedidosFiltrados(){
   return pedidos.filter(s=>{
     if(s.tipo !== 'pedido') return false;
     if(solFiltro && s.estado !== solFiltro) return false;
     if(solBusqueda){
-      const hay = ((s.nombre||'')+' '+(s.whatsapp||'')+' '+(s.correo||'')+' '+(s.mensaje_wa||'')).toLowerCase();
+      const hay = ((s.codigo||'')+' '+(s.nombre||'')+' '+(s.whatsapp||'')+' '+(s.correo||'')+' '+(s.mensaje_wa||'')).toLowerCase();
       if(!hay.includes(solBusqueda)) return false;
     }
     return true;
@@ -246,7 +267,7 @@ function solCard(s){
   const d = (s.detalles && typeof s.detalles==='object') ? s.detalles : {};
   const fechaTxt = new Date(s.created_at).toLocaleString('es-CO',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
 
-  const estados = ['nueva','vista','atendida','cerrada'];
+  const estados = ['nueva','vista','atendida','garantia','cerrada'];
   const contacto =
     '<div class="sol-contacto">'+
       '<span class="sol-nombre"><i class="fa-solid fa-user"></i>'+esc(s.nombre)+'</span>'+
@@ -262,7 +283,10 @@ function solCard(s){
     }
     pago = '<div class="sol-pago">'+
         '<div class="sol-pago-head"><span class="sol-tipo ped" style="font-size:.66rem;"><i class="fa-solid fa-money-bill-wave"></i>Pago</span>'+
-        (s.metodo_pago ? '<span class="sol-metodo"><i class="fa-solid fa-wallet"></i>'+esc(s.metodo_pago)+'</span>' : '')+'</div>'+
+        (s.metodo_pago ? '<span class="sol-metodo"><i class="fa-solid fa-wallet"></i>'+esc(s.metodo_pago)+'</span>' : '')+
+        (s.fecha_cierre ? '<span class="sol-fecha-cierre"><i class="fa-solid fa-circle-check"></i>Entregada '+haceTxt(s.fecha_cierre)+'</span>' : '')+
+        (s.stock_descontado ? '<span class="sol-stock-tag"><i class="fa-solid fa-box"></i>Stock descontado</span>' : '')+
+        '</div>'+
         (comp ? '<div class="sol-comp">'+comp+'<small>Comprobante adjunto</small></div>' : '<p class="sol-sincomp">Sin captura adjunta</p>')+
       '</div>';
   }
@@ -271,7 +295,10 @@ function solCard(s){
     '<div class="sol-head">'+
       '<div class="sol-left">'+
         '<span class="sol-tipo ped"><i class="fa-solid fa-bag-shopping"></i>Pedido</span>'+
+        (s.codigo ? '<span class="sol-codigo"><i class="fa-solid fa-hashtag"></i>'+esc(s.codigo)+'</span>' : '')+
         '<span class="sol-date"><i class="fa-regular fa-clock"></i>'+fechaTxt+'</span>'+
+        (s.fecha_cierre ? '<span class="sol-age"><i class="fa-solid fa-circle-check"></i>Entregada '+haceTxt(s.fecha_cierre)+'</span>' : '')+
+        (haceTxt(s.created_at) ? '<span class="sol-age"><i class="fa-solid fa-calendar-days"></i>'+haceTxt(s.created_at)+'</span>' : '')+
       '</div>'+
       '<div class="sol-head-acc">'+
         '<select class="sol-estado '+s.estado+'" title="Cambiar estado" '+attrEvt('onchange','cambiarEstado('+JSON.stringify(String(s.id))+',this.value)')+'>'+
@@ -292,11 +319,28 @@ function solCard(s){
 }
 
 async function cambiarEstado(id, estado){
-  const { error } = await sb.from('solicitudes').update({ estado }).eq('id', id);
+  if(estado === 'atendida'){
+    const { data, error } = await sb.rpc('cerrar_venta', { p_id: id });
+    if(error){ toast('No se pudo cerrar la venta','error'); renderPedidos(); return; }
+    const s = pedidos.find(x=>String(x.id)===String(id));
+    if(s){ s.estado = 'atendida'; s.stock_descontado = true; s.fecha_cierre = new Date().toISOString(); }
+    actualizarBadgePedidos();
+    renderPedidos();
+    renderVentas();
+    toast(data ? 'Venta cerrada · stock descontado' : 'La venta ya tenía el stock descontado');
+    return;
+  }
+
+  const payload = { estado };
+  if(estado === 'garantia') payload.fecha_garantia = new Date().toISOString();
+
+  const { error } = await sb.from('solicitudes').update(payload).eq('id', id);
   if(error){ toast('No se pudo actualizar el estado','error'); renderPedidos(); return; }
   const s = pedidos.find(x=>String(x.id)===String(id));
-  if(s) s.estado = estado;
+  if(s){ s.estado = estado; if(estado==='garantia') s.fecha_garantia = payload.fecha_garantia; }
   actualizarBadgePedidos();
+  renderPedidos();
+  renderVentas();
   toast('Estado actualizado: '+estadoLabel(estado));
 }
 
@@ -307,7 +351,77 @@ async function eliminarPedido(id){
   pedidos = pedidos.filter(x=>String(x.id)!==String(id));
   actualizarBadgePedidos();
   renderPedidos();
+  renderVentas();
   toast('Pedido eliminado');
+}
+
+/* ---------- Ventas (registro de ventas cerradas + garantías) ---------- */
+function ventasFiltradas(){
+  return pedidos.filter(s=>{
+    if(s.tipo !== 'pedido') return false;
+    if(!s.stock_descontado) return false;
+    if(ventaFiltroEstado && s.estado !== ventaFiltroEstado) return false;
+    if(ventaFiltroMetodo && (s.metodo_pago||'') !== ventaFiltroMetodo) return false;
+    if(ventaBusqueda){
+      const hay = ((s.codigo||'')+' '+(s.nombre||'')+' '+(s.whatsapp||'')).toLowerCase();
+      if(!hay.includes(ventaBusqueda)) return false;
+    }
+    return true;
+  });
+}
+
+let ventaStatsGlob = { ventas:0, ingresos:0, unidades:0, garantias:0 };
+
+function renderVentas(){
+  const filtradas = ventasFiltradas();
+  const importes = filtradas.map(s=>({
+    total: (s.detalles && s.detalles.total!=null) ? Number(s.detalles.total) : 0,
+    unidades: (Array.isArray(s.detalles&&s.detalles.items)?s.detalles.items:[]).reduce((a,it)=>a+(Number(it.cantidad)||0),0)
+  }));
+  ventaStatsGlob = {
+    ventas: filtradas.length,
+    ingresos: importes.reduce((a,r)=>a+r.total,0),
+    unidades: importes.reduce((a,r)=>a+r.unidades,0),
+    garantias: filtradas.filter(s=>s.estado==='garantia').length
+  };
+  $('ventaStats').innerHTML =
+    '<div class="stat"><div class="ic green"><i class="fa-solid fa-bag-shopping"></i></div><div><b>'+ventaStatsGlob.ventas+'</b><small>Ventas cerradas</small></div></div>'+
+    '<div class="stat"><div class="ic blue"><i class="fa-solid fa-sack-dollar"></i></div><div><b>'+fmtCOP(ventaStatsGlob.ingresos)+'</b><small>Ingresos estimados</small></div></div>'+
+    '<div class="stat"><div class="ic gold"><i class="fa-solid fa-boxes-stacked"></i></div><div><b>'+ventaStatsGlob.unidades+'</b><small>Cuentas vendidas</small></div></div>'+
+    '<div class="stat"><div class="ic red"><i class="fa-solid fa-shield-halved"></i></div><div><b>'+ventaStatsGlob.garantias+'</b><small>Garantías activas</small></div></div>';
+
+  $('ventaEmpty').classList.toggle('hidden', filtradas.length>0);
+  $('ventaList').innerHTML = filtradas.map(ventaCard).join('');
+}
+
+function ventaCard(s){
+  const d = (s.detalles && typeof s.detalles==='object') ? s.detalles : {};
+  const items = Array.isArray(d.items) ? d.items : [];
+  const lineas = items.map(it=>
+    '<div class="rl"><span>'+esc(it.nombre)+(it.plan?' <em>· '+esc(it.plan)+'</em>':'')+' × '+it.cantidad+'</span><span>'+(it.subtotal==null?'Consultar':fmtCOP(it.subtotal))+'</span></div>'
+  ).join('');
+  const total = (d.total==null) ? 'Consultar' : fmtCOP(d.total);
+  return '<div class="sol-card venta">'+
+    '<div class="sol-head">'+
+      '<div class="sol-left">'+
+        (s.codigo ? '<span class="sol-codigo"><i class="fa-solid fa-hashtag"></i>'+esc(s.codigo)+'</span>' : '<span class="sol-tipo ped"><i class="fa-solid fa-bag-shopping"></i>Venta</span>')+
+        (s.fecha_cierre ? '<span class="sol-age"><i class="fa-solid fa-circle-check"></i>Cerrada '+haceTxt(s.fecha_cierre)+'</span>' : '')+
+      '</div>'+
+      '<div class="sol-head-acc">'+
+        '<span class="sol-estado '+s.estado+'">'+estadoLabel(s.estado)+'</span>'+
+        (s.stock_descontado ? '<span class="sol-stock-tag"><i class="fa-solid fa-box"></i>Stock descontado</span>' : '')+
+      '</div>'+
+    '</div>'+
+    '<div class="sol-contacto">'+
+      '<span class="sol-nombre"><i class="fa-solid fa-user"></i>'+esc(s.nombre)+'</span>'+
+      (s.metodo_pago ? '<span class="sol-metodo"><i class="fa-solid fa-wallet"></i>'+esc(s.metodo_pago)+'</span>' : '')+
+      (s.whatsapp ? '<a href="'+waNum(s.whatsapp)+'" target="_blank" rel="noopener"><i class="fa-brands fa-whatsapp"></i>'+esc(s.whatsapp)+'</a>' : '')+
+    '</div>'+
+    '<div class="sol-ped">'+
+      '<div class="sol-items">'+(lineas||'<div class="rl">Sin ítems</div>')+'<div class="rl total"><span>Total</span><b>'+total+'</b></div></div>'+
+    '</div>'+
+    (s.fecha_garantia ? '<p class="hint" style="margin:.5rem 0 0;"><i class="fa-solid fa-shield-halved"></i> Garantía desde '+new Date(s.fecha_garantia).toLocaleDateString('es-CO',{day:'2-digit',month:'2-digit',year:'numeric'})+'</p>' : '')+
+  '</div>';
 }
 
 async function copiarMensaje(id){
@@ -697,12 +811,18 @@ $('productForm').addEventListener('submit', guardarCuenta);
 $('admSearch').addEventListener('input', renderLista);
 $('admFiltroCat').addEventListener('change', renderLista);
 
-/* Navegación: cuentas / pedidos / publicidad */
+/* Navegación: cuentas / pedidos / ventas / publicidad */
 $('btnNavProductos').addEventListener('click', ()=> setVista('productos'));
 $('btnNavPedidos').addEventListener('click', ()=> setVista('pedidos'));
+$('btnNavVentas').addEventListener('click', ()=> setVista('ventas'));
 $('btnNavBanners').addEventListener('click', ()=> setVista('banners'));
 $('solFiltroEstado').addEventListener('change', e=>{ solFiltro = e.target.value; renderPedidos(); });
 $('solSearch').addEventListener('input', e=>{ solBusqueda = e.target.value.trim().toLowerCase(); renderPedidos(); });
+
+/* Ventas */
+$('ventaSearch').addEventListener('input', e=>{ ventaBusqueda = e.target.value.trim().toLowerCase(); renderVentas(); });
+$('ventaFiltroEstado').addEventListener('change', e=>{ ventaFiltroEstado = e.target.value; renderVentas(); });
+$('ventaFiltroMetodo').addEventListener('change', e=>{ ventaFiltroMetodo = e.target.value; renderVentas(); });
 
 /* Foto: clic y arrastrar */
 $('fotoDrop').addEventListener('click', ()=> $('fFoto').click());

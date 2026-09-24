@@ -102,13 +102,28 @@ create table if not exists public.solicitudes (
   mensaje_wa text default '',
   metodo_pago text default '',
   comprobante_url text default '',
-  estado text default 'nueva' check (estado in ('nueva','vista','atendida','cerrada')),
+  codigo text,
+  stock_descontado boolean not null default false,
+  fecha_cierre timestamptz,
+  fecha_garantia timestamptz,
+  estado text default 'nueva' constraint solicitudes_estado_check check (estado in ('nueva','vista','atendida','garantia','cerrada')),
   created_at timestamptz default now()
 );
 
 -- Columnas nuevas de esta versión (seguro si la tabla ya existía de antes)
 alter table public.solicitudes add column if not exists metodo_pago text default '';
 alter table public.solicitudes add column if not exists comprobante_url text default '';
+alter table public.solicitudes add column if not exists codigo text;
+alter table public.solicitudes add column if not exists stock_descontado boolean not null default false;
+alter table public.solicitudes add column if not exists fecha_cierre timestamptz;
+alter table public.solicitudes add column if not exists fecha_garantia timestamptz;
+
+-- Estado ampliado con 'garantia' (reemplaza el constraint viejo si existía)
+alter table public.solicitudes drop constraint if exists solicitudes_estado_check;
+alter table public.solicitudes add constraint solicitudes_estado_check check (estado in ('nueva','vista','atendida','garantia','cerrada'));
+
+-- Código de compra único (para seguimiento y garantías)
+create unique index if not exists solicitudes_codigo_uidx on public.solicitudes (codigo) where codigo is not null;
 
 -- Índice para listar por estado y fecha
 create index if not exists solicitudes_idx on public.solicitudes (estado, created_at desc);
@@ -174,6 +189,126 @@ drop trigger if exists trg_solicitudes_anti_spam on public.solicitudes;
 create trigger trg_solicitudes_anti_spam
   before insert on public.solicitudes
   for each row execute function public.solicitudes_anti_spam();
+
+-- 6.5) CÓDIGO DE COMPRA (SP-XXXXXX), STOCK Y CONSULTA
+
+-- Asigna automáticamente un código único a cada pedido al crearlo
+create or replace function public.solicitudes_generar_codigo()
+returns trigger
+language plpgsql
+as $$
+declare c text;
+begin
+  if new.codigo is null or trim(new.codigo) = '' then
+    loop
+      c := 'SP-' || lpad((floor(random()*900000)+100000)::int::text, 6, '0');
+      exit when not exists (select 1 from public.solicitudes where codigo = c);
+    end loop;
+    new.codigo := c;
+  else
+    new.codigo := upper(trim(new.codigo));
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_solicitudes_codigo on public.solicitudes;
+create trigger trg_solicitudes_codigo
+  before insert on public.solicitudes
+  for each row execute function public.solicitudes_generar_codigo();
+
+-- Cierra la venta: descuenta stock UNA sola vez y la marca atendida.
+-- Solo puede ejecutarla el admin autenticado.
+create or replace function public.cerrar_venta(p_id uuid)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  s public.solicitudes%rowtype;
+  it jsonb;
+begin
+  if auth.role() <> 'authenticated' then
+    raise exception 'No autorizado';
+  end if;
+
+  select * into s from public.solicitudes where id = p_id;
+  if not found then
+    raise exception 'Pedido no encontrado';
+  end if;
+
+  if s.stock_descontado then
+    return false;
+  end if;
+
+  -- Descuenta stock por cada cuenta vendida
+  for it in select value from jsonb_array_elements(coalesce(s.detalles -> 'items', '[]'::jsonb)) loop
+    if (it ->> 'id') is not null and (it ->> 'cantidad') is not null then
+      update public.stream_accounts
+         set stock = greatest(coalesce(stock, 0) - (it ->> 'cantidad')::int, 0)
+       where id = (it ->> 'id')::uuid;
+    end if;
+  end loop;
+
+  update public.solicitudes
+     set estado = 'atendida',
+         fecha_cierre = coalesce(s.fecha_cierre, now()),
+         stock_descontado = true
+   where id = p_id;
+
+  return true;
+end;
+$$;
+
+revoke all on function public.cerrar_venta(uuid) from public;
+grant execute on function public.cerrar_venta(uuid) to authenticated;
+
+-- Consulta pública de estado por código (NO expone contacto ni comprobante)
+create or replace function public.consultar_pedido(p_codigo text)
+returns table (
+  codigo text,
+  estado text,
+  creado timestamptz,
+  fecha_cierre timestamptz,
+  fecha_garantia timestamptz,
+  metodo_pago text,
+  total integer,
+  items jsonb,
+  stock_descontado boolean
+)
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if p_codigo is null or trim(p_codigo) = '' then
+    return;
+  end if;
+  return query
+    select s.codigo, s.estado, s.created_at, s.fecha_cierre, s.fecha_garantia,
+           s.metodo_pago, (s.detalles ->> 'total')::int, s.detalles -> 'items',
+           s.stock_descontado
+    from public.solicitudes s
+    where s.codigo = upper(trim(p_codigo));
+end;
+$$;
+
+grant execute on function public.consultar_pedido(text) to anon, authenticated;
+
+-- Backfill: asigna código a pedidos creados antes de esta versión
+do $$
+declare r record;
+declare c text;
+begin
+  for r in select id from public.solicitudes where codigo is null or trim(codigo) = '' loop
+    loop
+      c := 'SP-' || lpad((floor(random()*900000)+100000)::int::text, 6, '0');
+      exit when not exists (select 1 from public.solicitudes where codigo = c);
+    end loop;
+    update public.solicitudes set codigo = c where id = r.id;
+  end loop;
+end $$;
 
 -- ================================================================
 -- 7) BANNERS PUBLICITARIOS (carrusel de la parte superior)

@@ -89,14 +89,18 @@ async function cargarBanners(){
   return data || [];
 }
 
-/* Guarda el pedido en Supabase sin bloquear el flujo de WhatsApp */
-function registrarPedido(nombre, whatsapp, correo, detalles, mensaje_wa, metodo_pago, comprobante_url){
-  if(!sb) return;
-  sb.from('solicitudes').insert([{ tipo:'pedido', nombre, whatsapp, correo, detalles, mensaje_wa, metodo_pago: metodo_pago||'', comprobante_url: comprobante_url||'', estado:'nueva' }])
-    .then(r=>{
-      if(r.error) console.warn('No se pudo guardar el pedido en Supabase:', r.error.message);
-    })
-    .catch(e=>console.warn('No se pudo guardar el pedido en Supabase:', e));
+/* Guarda el pedido en Supabase sin bloquear el flujo de WhatsApp.
+   Devuelve la fila insertada (incluye el codigo de seguimiento). */
+async function registrarPedido(nombre, whatsapp, correo, detalles, mensaje_wa, metodo_pago, comprobante_url){
+  if(!sb) return null;
+  try{
+    const { data, error } = await sb.from('solicitudes').insert([{ tipo:'pedido', nombre, whatsapp, correo, detalles, mensaje_wa, metodo_pago: metodo_pago||'', comprobante_url: comprobante_url||'', estado:'nueva' }]).select().single();
+    if(error){ console.warn('No se pudo guardar el pedido en Supabase:', error.message); return null; }
+    return data || null;
+  }catch(e){
+    console.warn('No se pudo guardar el pedido en Supabase:', e);
+    return null;
+  }
 }
 
 /* =============================================================== */
@@ -686,20 +690,29 @@ document.getElementById('orderForm').addEventListener('submit', async function(e
     let comprobante_url = '';
     if(comprobanteFile) comprobante_url = await subirComprobante(comprobanteFile);
 
-    document.getElementById('waOrderBtn').href = PREFIJO_WA+'?text='+encodeURIComponent(msg);
-
-    registrarPedido(
+    const fila = await registrarPedido(
       nombre,
       (document.getElementById('oWhats').value||'').trim(),
       (document.getElementById('oCorreo').value||'').trim(),
       {
-        items: comp.map(l=>({ nombre: l.name, plan: l.plan||'', plataforma: l.plataforma||'', cantidad: l.qty, subtotal: subtotalLinea(l) })),
+        items: comp.map(l=>({ id: String(l.id), nombre: l.name, plan: l.plan||'', plataforma: l.plataforma||'', cantidad: l.qty, subtotal: subtotalLinea(l) })),
         total: hayConsultar ? null : sub
       },
       msg,
       metodo,
       comprobante_url
     );
+
+    const codigo = fila && fila.codigo ? fila.codigo : '';
+    let msgWA = msg;
+    if(codigo) msgWA += '\n\nNo. de seguimiento: '+codigo+' (guárdalo para tu garantía)';
+    document.getElementById('waOrderBtn').href = PREFIJO_WA+'?text='+encodeURIComponent(msgWA);
+
+    const oc = document.getElementById('orderCode');
+    if(oc){
+      if(codigo){ oc.style.display=''; oc.querySelector('b').textContent = codigo; }
+      else oc.style.display='none';
+    }
 
     document.getElementById('orderFormView').style.display='none';
     document.getElementById('orderSuccess').classList.add('show');
@@ -749,6 +762,62 @@ document.addEventListener('keydown', e=>{
     document.getElementById('navLinks').classList.remove('open');
   }
 });
+
+/* =============================================================== */
+/* CONSULTA DE ESTADO POR CÓDIGO                                  */
+/* =============================================================== */
+const ESTADO_COMPRA = {
+  nueva:'En revisión', vista:'En revisión', atendida:'Entregada',
+  garantia:'En garantía', cerrada:'Cerrada'
+};
+
+async function consultarPedido(){
+  const inp = document.getElementById('consCodigo');
+  if(!inp) return;
+  const codigo = (inp.value||'').trim().toUpperCase();
+  const res = document.getElementById('consResult');
+  if(!codigo){ toast('Ingresa tu código de compra (SP-XXXXXX)','warn'); if(res) res.innerHTML=''; return; }
+  if(res) res.innerHTML = '<div class="cons-loading"><i class="fa-solid fa-spinner fa-spin"></i> Consultando tu pedido…</div>';
+  try{
+    const { data, error } = await sb.rpc('consultar_pedido', { p_codigo: codigo });
+    if(error) throw error;
+    if(!data || !data.length){
+      if(res) res.innerHTML = '<div class="cons-empty"><i class="fa-solid fa-circle-question"></i><p>No encontramos un pedido con ese código.<br>Verifica que esté bien escrito e inténtalo de nuevo.</p></div>';
+      return;
+    }
+    const p = data[0];
+    const label = ESTADO_COMPRA[p.estado] || p.estado || '';
+    const art = p.estado==='garantia' ? '<i class="fa-solid fa-shield-halved"></i>' :
+                p.estado==='atendida' ? '<i class="fa-solid fa-circle-check"></i>' :
+                p.estado==='cerrada' ? '<i class="fa-solid fa-lock"></i>' :
+                '<i class="fa-regular fa-clock"></i>';
+    const items = (Array.isArray(p.items)?p.items:[]).map(it=>
+      '<div class="rl"><span>'+esc_html(it.nombre||'')+(it.plan?' <em>· '+esc_html(it.plan)+'</em>':'')+' × '+(it.cantidad||1)+'</span><span>'+(it.subtotal==null?'Consultar':formatCOP(it.subtotal))+'</span></div>'
+    ).join('');
+    const resumen = items ? '<div class="cons-items"><h4><i class="fa-solid fa-bag-shopping"></i> Tu pedido</h4>'+items+(p.total!=null?'<div class="rl total"><span>Total</span><b>'+formatCOP(p.total)+'</b></div>':'')+'</div>' : '';
+    if(res) res.innerHTML =
+      '<div class="cons-card">'+
+        '<div class="cons-head">'+
+          '<div><small>Código</small><b>'+esc_html(p.codigo)+'</b></div>'+
+          '<span class="cons-pill '+esc_html(p.estado)+'">'+art+' '+label+'</span>'+
+        '</div>'+
+        '<div class="cons-meta">'+
+          '<span><i class="fa-regular fa-calendar"></i> Solicitud: '+new Date(p.creado).toLocaleDateString('es-CO',{day:'2-digit',month:'2-digit',year:'numeric'})+'</span>'+
+          (p.fecha_cierre?'<span><i class="fa-solid fa-circle-check"></i> Entregada: '+new Date(p.fecha_cierre).toLocaleDateString('es-CO',{day:'2-digit',month:'2-digit',year:'numeric'})+'</span>':'')+
+          (p.fecha_garantia?'<span><i class="fa-solid fa-shield-halved"></i> Garantía desde: '+new Date(p.fecha_garantia).toLocaleDateString('es-CO',{day:'2-digit',month:'2-digit',year:'numeric'})+'</span>':'')+
+          (p.metodo_pago?'<span><i class="fa-solid fa-wallet"></i> '+esc_html(p.metodo_pago)+'</span>':'')+
+        '</div>'+
+        resumen+
+      '</div>';
+  }catch(err){
+    console.error('Error consultando pedido', err);
+    if(res) res.innerHTML = '<div class="cons-empty"><i class="fa-solid fa-triangle-exclamation"></i><p>Ocurrió un error al consultar. Intenta de nuevo en unos segundos.</p></div>';
+  }
+}
+
+function esc_html(s){
+  return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
 
 /* =============================================================== */
 /* INICIALIZACIÓN                                                   */
