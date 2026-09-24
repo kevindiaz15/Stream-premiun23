@@ -90,11 +90,22 @@ async function cargarBanners(){
 }
 
 /* Guarda el pedido en Supabase sin bloquear el flujo de WhatsApp.
-   Devuelve la fila insertada (incluye el codigo de seguimiento). */
+   Devuelve la fila insertada (incluye el codigo de seguimiento).
+   Usa la funcion security definer crear_pedido para que el cliente anon
+   pueda leer la fila de vuelta (la politica de SELECT de solicitudes
+   solo permite al admin autenticado). */
 async function registrarPedido(nombre, whatsapp, correo, detalles, mensaje_wa, metodo_pago, comprobante_url){
   if(!sb) return null;
   try{
-    const { data, error } = await sb.from('solicitudes').insert([{ tipo:'pedido', nombre, whatsapp, correo, detalles, mensaje_wa, metodo_pago: metodo_pago||'', comprobante_url: comprobante_url||'', estado:'nueva' }]).select().single();
+    const { data, error } = await sb.rpc('crear_pedido', {
+      p_nombre: nombre,
+      p_whatsapp: whatsapp,
+      p_correo: correo,
+      p_detalles: detalles,
+      p_mensaje_wa: mensaje_wa,
+      p_metodo_pago: metodo_pago || '',
+      p_comprobante_url: comprobante_url || ''
+    });
     if(error){ console.warn('No se pudo guardar el pedido en Supabase:', error.message); return null; }
     return data || null;
   }catch(e){
@@ -705,15 +716,17 @@ document.getElementById('orderForm').addEventListener('submit', async function(e
       comprobante_url
     );
 
-    const codigo = fila && fila.codigo ? fila.codigo : '';
+    if(!fila || !fila.codigo) throw new Error('No se pudo registrar el pedido en la base de datos');
+
+    const codigo = fila.codigo;
     let msgWA = msg;
-    if(codigo) msgWA += '\n\nNo. de seguimiento: '+codigo+' (guárdalo para tu garantía)';
+    msgWA += '\n\nNo. de seguimiento: '+codigo+' (guárdalo para tu garantía)';
     document.getElementById('waOrderBtn').href = PREFIJO_WA+'?text='+encodeURIComponent(msgWA);
 
     const oc = document.getElementById('orderCode');
     if(oc){
-      if(codigo){ oc.style.display=''; oc.querySelector('b').textContent = codigo; }
-      else oc.style.display='none';
+      oc.style.display='';
+      oc.querySelector('b').textContent = codigo;
     }
 
     document.getElementById('orderFormView').style.display='none';

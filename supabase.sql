@@ -296,6 +296,48 @@ $$;
 
 grant execute on function public.consultar_pedido(text) to anon, authenticated;
 
+-- Crea un pedido desde la tienda y DEVUELVE la fila completa (incluye el
+-- código de seguimiento generado por el trigger).
+-- Se usa security definer para que el cliente anon pueda recibir el codigo
+-- sin depender de la política de SELECT de solicitudes (que es solo admin).
+create or replace function public.crear_pedido(
+  p_nombre text,
+  p_whatsapp text default '',
+  p_correo text default '',
+  p_detalles jsonb default '{}'::jsonb,
+  p_mensaje_wa text default '',
+  p_metodo_pago text default '',
+  p_comprobante_url text default ''
+)
+returns public.solicitudes
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  r public.solicitudes;
+begin
+  insert into public.solicitudes
+    (tipo, nombre, whatsapp, correo, detalles, mensaje_wa, metodo_pago, comprobante_url, estado)
+  values
+    ('pedido',
+     p_nombre,
+     coalesce(p_whatsapp, ''),
+     coalesce(p_correo, ''),
+     coalesce(p_detalles, '{}'::jsonb),
+     coalesce(p_mensaje_wa, ''),
+     coalesce(p_metodo_pago, ''),
+     coalesce(p_comprobante_url, ''),
+     'nueva')
+  returning * into r;
+
+  return r;
+end;
+$$;
+
+revoke all on function public.crear_pedido(text, text, text, jsonb, text, text, text) from public;
+grant execute on function public.crear_pedido(text, text, text, jsonb, text, text, text) to anon, authenticated;
+
 -- Backfill: asigna código a pedidos creados antes de esta versión
 do $$
 declare r record;
